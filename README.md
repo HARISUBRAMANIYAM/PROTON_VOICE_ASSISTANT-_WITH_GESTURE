@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 
 # Gesture Controlled Virtual Mouse &nbsp;[![](https://img.shields.io/badge/python-3.8.5-blue.svg)](https://www.python.org/downloads/) [![platform](https://img.shields.io/badge/platform-windows-green.svg)](https://github.com/xenon-19/Gesture_Controller) 
@@ -261,3 +262,7 @@ Note: Use Python version: 3.8.5
   | Ankit Sharma | [GitHub](https://github.com/ankit-4129) | [Email](mailto:ankitsharma.rbt@gmail.com) | LinkedIn | Instagram |
   | Parth Sakariya | [Github](https://github.com/parth-12) | [Email](mailto:parthsakariya12@icloud.com) | [LinkedIn](https://www.linkedin.com/in/parth-sakariya-1886b2193/) | [Instagram](https://www.instagram.com/parth_sak12/) |
   
+=======
+# PROTON_VOICE_ASSISTANT-_WITH_GESTURE
+It's a voice based  vrtual assistant with Gesture Controlling virtual mouse integration.
+>>>>>>> 78f5ba23a79008a8ff84119f486265c86b4c3988
