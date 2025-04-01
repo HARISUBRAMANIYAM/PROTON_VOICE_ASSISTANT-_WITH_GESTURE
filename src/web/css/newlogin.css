@@ -1,0 +1,148 @@
+/* login.css */
+
+body {
+    background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container, .register-container {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    padding: 30px;
+    text-align: center;
+}
+
+h1 {
+    color: #3a7bd5;
+    margin-bottom: 10px;
+}
+
+form {
+    margin-top: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    transition: border 0.3s ease;
+}
+
+input:focus {
+    border-color: #3a7bd5;
+    outline: none;
+}
+
+button {
+    background: linear-gradient(to right, #3a7bd5, #00d2ff);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    width: 100%;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    box-shadow: 0 5px 15px rgba(58, 123, 213, 0.4);
+    transform: translateY(-2px);
+}
+
+.switch-form {
+    margin-top: 20px;
+    color: #777;
+    font-size: 14px;
+}
+
+.switch-form a {
+    color: #3a7bd5;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 5px;
+}
+
+.switch-form a:hover {
+    text-decoration: underline;
+}
+
+.social-login {
+    margin-top: 25px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin: 0 10px;
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: left;
+    display: none;
+}
+
+.show-error {
+    display: block;
+}
+
+.password-toggle {
+    position: relative;
+}
+
+.toggle-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #777;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.remember-me input {
+    width: auto;
+    margin-right: 8px;
+}
+
+@media (max-width: 480px) {
+    .login-container, .register-container {
+        width: 90%;
+        padding: 20px;
+    }
+}

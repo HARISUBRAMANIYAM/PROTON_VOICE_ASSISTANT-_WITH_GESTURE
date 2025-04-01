@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton SPA</title>
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Default view is Login -->
+        <div id="loginView" class="view">
+            <h1>Login to Proton</h1>
+            <p>Access your AI-powered assistant</p>
+            <form id="loginForm">
+                <input type="email" id="username" placeholder="Email" autocomplete="email" required>
+                <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+                <div id="loginMessage" class="message"></div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+            <div class="social-login">
+                <p>Or login with:</p>
+                <button class="google-btn" onclick="socialLogin('google')">Login with Google</button>
+                <button class="facebook-btn" onclick="socialLogin('facebook')">Login with Facebook</button>
+                <button class="github-btn" onclick="socialLogin('github')">Login with GitHub</button>
+            </div>
+            <p class="register">Don't have an account? <a href="#" onclick="showView('registerView')">Sign up</a></p>
+        </div>
+
+        <!-- Register View -->
+        <div id="registerView" class="view" style="display: none;">
+            <h1>Register for Proton</h1>
+            <p>Create your AI-powered assistant account</p>
+            <form id="registerForm">
+                <input type="email" id="reg-email" placeholder="Email" autocomplete="email" required>
+                <input type="password" id="reg-password" placeholder="Password" autocomplete="new-password" required>
+                <input type="password" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password" required>
+                <div id="reg-message" class="message"></div>
+                <button type="submit" class="register-btn">Register</button>
+            </form>
+            <p class="login-link">Already have an account? <a href="#" onclick="showView('loginView')">Login</a></p>
+        </div>
+
+        <!-- Chat View -->
+        <div id="chatView" class="view" style="display: none;">
+            <header>
+                <div class="header-wrapper">
+                    <div class="logo">
+                        <img src="images/icon.png" width="35" height="33" alt="Proton Logo">
+                    </div>
+                    <p class="awesome">PROTON Welcomes you!</p>
+                </div>
+                <nav class="list_of_pages">
+                    <ul>
+                        <li><a href="#" onclick="showView('chatView')">Home</a></li>
+                        <li><a href="#" onclick="showView('aboutView')">About</a></li>
+                        <li><a href="#" onclick="showView('gestureView')">Gesture-Controller</a></li>
+                    </ul>
+                </nav>
+            </header>
+            <main>
+                <div class="chat-container">
+                    <div class="chat_box">
+                        <div class="conv-form-wrapper">
+                            <div id="messages"></div>
+                            <div class="input-area">
+                                <input type="text" id="userInput" placeholder="I'm listening...">
+                                <button id="userInputButton">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+            <aside>
+                <button id="menuToggle"><i class="fas fa-bars"></i></button>
+                <div class="sidebar">
+                    <ul class="menu">
+                        <li><a href="#">Menu</a></li>
+                        <li><a href="#" id="clearSessions">Clear All Chats</a></li>
+                        <li><a href="#" id="logout">Logout</a></li>
+                        <li><a href="#" id="chatHistoryBtn">Chat History</a></li>
+                        <li><a href="#" onclick="showView('settingsView')">Settings</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+
+        <!-- About View -->
+        <div id="aboutView" class="view" style="display: none;">
+            <h1>About Proton</h1>
+            <p>This is the about page.</p>
+            <a href="#" onclick="showView('chatView')">Back to Chat</a>
+        </div>
+
+        <!-- Gesture View -->
+        <div id="gestureView" class="view" style="display: none;">
+            <h1>Gesture Controller</h1>
+            <p>Gesture control functionality will be here.</p>
+            <a href="#" onclick="showView('chatView')">Back to Chat</a>
+        </div>
+
+        <!-- Settings View -->
+        <div id="settingsView" class="view" style="display: none;">
+            <h1>Settings</h1>
+            <p>Configure your settings here.</p>
+            <a href="#" onclick="showView('chatView')">Back to Chat</a>
+        </div>
+    </div>
+
+    <script>
+        // Function to show a specific view and hide others
+        function showView(viewId) {
+            const views = document.querySelectorAll('.view');
+            views.forEach(view => {
+                view.style.display = 'none';
+            });
+            document.getElementById(viewId).style.display = 'block';
+        }
+
+        // Login form handling
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            const messageDiv = document.getElementById("loginMessage");
+
+            try {
+                const result = await eel.authenticate_user(username, password)();
+                if (result.status === "success") {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = "message success";
+                    showView('chatView');
+                } else {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = "message error";
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                messageDiv.textContent = "An error occurred. Please try again later.";
+                messageDiv.className = "message error";
+            }
+        });
+
+        // Registration form handling
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById("reg-email").value;
+            const password = document.getElementById("reg-password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+            const messageDiv = document.getElementById("reg-message");
+
+            if (password !== confirmPassword) {
+                messageDiv.textContent = "Passwords do not match!";
+                messageDiv.className = "message error";
+                return;
+            }
+
+            try {
+                const result = await eel.register_user(email, password)();
+                if (result.status === "success") {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = "message success";
+                    showView('loginView');
+                } else {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = "message error";
+                }
+            } catch (error) {
+                console.error('Error during registration:', error);
+                messageDiv.textContent = "An error occurred. Please try again later.";
+                messageDiv.className = "message error";
+            }
+        });
+
+        // Logout handling
+        document.getElementById('logout').addEventListener('click', function() {
+            eel.Logout();
+            showView('loginView');
+        });
+
+        // Social login placeholder function
+        function socialLogin(provider) {
+            alert(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be implemented soon.`);
+        }
+
+        // Initialize the app with the login view
+        showView('loginView');
+    // Function to show a specific view and hide others
+    function showView(viewId) {
+        const views = document.querySelectorAll('.view');
+        views.forEach(view => {
+            view.style.display = 'none';
+        });
+        document.getElementById(viewId).style.display = 'block';
+    }
+
+    // Login form handling
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const messageDiv = document.getElementById("loginMessage");
+
+        try {
+            const result = await eel.authenticate_user(username, password)();
+            if (result.status === "success") {
+                messageDiv.textContent = result.message;
+                messageDiv.className = "message success";
+                showView('chatView');
+            } else {
+                messageDiv.textContent = result.message;
+                messageDiv.className = "message error";
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            messageDiv.textContent = "An error occurred. Please try again later.";
+            messageDiv.className = "message error";
+        }
+    });
+
+    // Registration form handling
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const email = document.getElementById("reg-email").value;
+        const password = document.getElementById("reg-password").value;
+        const confirmPassword = document.getElementById("confirm-password").value;
+        const messageDiv = document.getElementById("reg-message");
+
+        if (password !== confirmPassword) {
+            messageDiv.textContent = "Passwords do not match!";
+            messageDiv.className = "message error";
+            return;
+        }
+
+        try {
+            const result = await eel.register_user(email, password)();
+            if (result.status === "success") {
+                messageDiv.textContent = result.message;
+                messageDiv.className = "message success";
+                showView('loginView');
+            } else {
+                messageDiv.textContent = result.message;
+                messageDiv.className = "message error";
+            }
+        } catch (error) {
+            console.error('Error during registration:', error);
+            messageDiv.textContent = "An error occurred. Please try again later.";
+            messageDiv.className = "message error";
+        }
+    });
+
+    // Logout handling
+    document.getElementById('logout').addEventListener('click', async function() {
+        const result = await eel.logout()();
+        if (result.status === "success") {
+            showView('loginView');
+        }
+    });
+
+    // Chat message handling
+    document.getElementById('userInputButton').addEventListener('click', async function() {
+        const userInput = document.getElementById('userInput').value;
+        if (userInput.trim() === "") return;
+
+        // Save user message
+        await eel.save_chat_message("User", userInput)();
+
+        // Simulate bot response
+        const botResponse = "This is a bot response.";  // Replace with your bot logic
+        await eel.save_chat_message("Bot", botResponse)();
+
+        // Display messages in the chat window
+        const messagesDiv = document.getElementById('messages');
+        messagesDiv.innerHTML += `<div class="user-message">User: ${userInput}</div>`;
+        messagesDiv.innerHTML += `<div class="bot-message">Bot: ${botResponse}</div>`;
+
+        // Clear input
+        document.getElementById('userInput').value = '';
+    });
+
+    // Load chat history
+    async function loadChatHistory() {
+        const result = await eel.get_chat_history()();
+        if (result.status === "success") {
+            const messagesDiv = document.getElementById('messages');
+            messagesDiv.innerHTML = "";  // Clear existing messages
+            result.data.forEach(msg => {
+                messagesDiv.innerHTML += `<div class="${msg.sender.toLowerCase()}-message">${msg.sender}: ${msg.message}</div>`;
+            });
+        }
+    }
+
+    // Initialize the app with the login view
+    showView('loginView');
+    loadChatHistory();  // Load chat history when the app starts
+
+    </script>
+</body>
+</html>

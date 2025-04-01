@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Proton</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script type="text/javascript" src="/eel.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+        
+    <script>
+        // SPA navigation function
+        function navigateSPA(pageId) {
+            console.log("Navigating to:", pageId);
+            
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show the selected page
+            document.getElementById(pageId + '-page').classList.add('active');
+            
+            // Inform Python backend if eel is available
+            if (typeof eel !== 'undefined') {
+                try {
+                    eel.navigate_to(pageId);
+                } catch (e) {
+                    console.error("Error calling eel.navigate_to:", e);
+                }
+            }
+            
+            // Update URL without reloading (for back/forward button support)
+            history.pushState({page: pageId}, pageId, pageId + '.html');
+        }
+        
+        // Legacy navigation functions (maintained for compatibility)
+        function navigate(page) {
+            // Extract page ID from the URL
+            const pageId = page.split('.')[0];
+            navigateSPA(pageId);
+        }
+    
+        function goback() {
+            console.log("Going back in history");
+            window.history.back();
+        }
+    
+        function goforward() {
+            console.log("Going forward in history");
+            window.history.forward();
+        }
+        
+        // Handle back/forward buttons
+        window.onpopstate = function(event) {
+            if (event.state && event.state.page) {
+                navigateSPA(event.state.page);
+            }
+        };
+        
+        // Make them globally available explicitly
+        window.navigateSPA = navigateSPA;
+        window.navigate = navigate;
+        window.goback = goback;
+        window.goforward = goforward;
+    </script>
+</head>
+<body>
+    <header>
+        <div class="list_of_pages">
+            <ul>
+                <li><a href="#" onclick="navigateSPA('home');return false;">Home</a></li>
+                <li><a href="#" onclick="navigateSPA('about'); return false;">About</a></li>
+                <li><a href="#" onclick="navigateSPA('login'); return false;">Login</a></li>
+                <li><a href="#" onclick="navigateSPA('register');return false;">Register</a></li>
+                <li><div class="nav-buttons">
+                    <button onclick="goback()">⬅ Back</button>
+                    <button onclick="goforward()">Forward ➡</button>
+                </div></li>
+            </ul>
+            
+            <div class="header-wrapper">
+                <p class="awesome">PROTON Welcomes you!</p>
+                <div class="logo">
+                    <img src="images/icon.png" width="35" height="33" alt="Proton Logo">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar Menu -->
+    <button id="menuToggle" title="Toggle Menu"><i class="fas fa-bars"></i></button>
+    <div class="sidebar">
+        <ul class="menu">
+            <li><a href="#"><i class="fas fa-info-circle"></i> Menu</a></li>
+            <li><a href="#" id="clearSessions">Clear All Chats</a></li>
+            <li><a href="#" id="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a href="#" id="chatHistoryBtn">Chat History</a></li>
+        </ul>
+    </div>
+
+    <!-- Unified Chat History Panel -->
+    <div class="unified-chat-history" id="unifiedChatHistory">
+        <div class="history-header">
+            <h3>Chat History</h3>
+            <button id="closeHistory" class="close-btn" title="Close History"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="history-body">
+            <div class="history-sidebar">
+                <button id="refreshHistory" class="btn">Refresh History</button>
+                <h4>Saved Chats:</h4>
+                <ul id="chatHistoryFiles">
+                    <!-- Chat files will be displayed here -->
+                </ul>
+            </div>
+            <div class="history-content">
+                <div id="historyDisplayArea">
+                    <p class="select-prompt">Select a chat to view its history</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPA Pages Container -->
+    <div class="pages-container">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat_box">
+                    <div class="conv-form-wrapper">
+                        <!-- Chat Messages Container -->
+                        <div id="messages"></div>
+                        
+                        <!-- Input Area -->
+                        <div class="input-area">
+                            <input type="text" id="userInput" placeholder="I'm listening...">
+                            <button id="userInputButton" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About Page -->
+        <div id="about-page" class="page">
+            <div class="page-content">
+                <h1>About Proton</h1>
+                <p>Proton is an AI assistant designed to help you with various tasks. It uses advanced natural language processing to understand and respond to your queries.</p>
+                <p>This application was built with Python and JavaScript, utilizing Eel for the web interface.</p>
+            </div>
+        </div>
+        
+        <!-- Login Page -->
+        <div id="login-page" class="page">
+            <div class="page-content">
+                <h1>Login to Proton</h1>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+                <p>Don't have an account? <a href="#" onclick="navigateSPA('register');return false;">Register here</a></p>
+            </div>
+        </div>
+        
+        <!-- Register Page -->
+        <div id="register-page" class="page">
+            <div class="page-content">
+                <h1>Register for Proton</h1>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="new-username">Username:</label>
+                        <input type="text" id="new-username" name="new-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Password:</label>
+                        <input type="password" id="new-password" name="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password:</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <button type="submit" class="btn">Register</button>
+                </form>
+                <p>Already have an account? <a href="#" onclick="navigateSPA('login');return false;">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="js/main.js" defer></script>
+</body>
+</html>

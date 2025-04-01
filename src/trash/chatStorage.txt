@@ -1,0 +1,49 @@
+document.addEventListener("DOMContentLoaded", function () {
+    loadChatHistory();
+});
+
+// Function to save chat history
+function saveChatHistory(msg, sender) {
+    let chatEntry = { sender: sender, msg: msg, timestamp: new Date().toISOString() };
+
+    // Send chat entry to Python for saving
+    eel.save_chat(chatEntry)();
+}
+
+// Function to load chat history from JSON file
+function loadChatHistory() {
+    eel.load_chat()(function (chatHistory) {
+        const chatBox = document.getElementById("messages");
+        chatBox.innerHTML = "";
+
+        chatHistory.forEach(({ sender, msg }) => {
+            let messageClass = sender === "user" ? "message from ready rtol" : "message to ready ltor";
+            chatBox.innerHTML += `<div class="${messageClass}">${msg}</div>`;
+        });
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+// Modify existing functions to use new storage system
+function addUserMsg(msg) {
+    console.log("Before sanitization:", msg);
+    const sanitizedMsg = DOMPurify.sanitize(msg);
+    console.log("After sanitization:", sanitizedMsg);
+
+    const chatBox = document.getElementById("messages");
+    chatBox.innerHTML += `<div class="message from ready rtol">${sanitizedMsg}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    saveChatHistory(msg, "user");
+}
+
+
+function addAppMsg(msg) {
+    const chatBox = document.getElementById("messages");
+    const sanitizedMsg = DOMPurify.sanitize(msg);
+    chatBox.innerHTML += `<div class="message to ready ltor">${sanitizedMsg}</div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    saveChatHistory(msg, "bot");
+}

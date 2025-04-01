@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #f44336;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #4caf50;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Login to Proton</h1>
+        <p>Access your AI-powered assistant</p>
+        
+        <div id="message" class="message"></div>
+        
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit" id="loginBtn">
+                <span id="btnText">Login</span>
+                <span id="btnSpinner" class="loading" style="display:none;"></span>
+            </button>
+        </form>
+        
+        <p class="register-link">Don't have an account? <a href="register.html">Sign up</a></p>
+    </div>
+
+    <script src="/eel.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // Show loading state
+            btnText.textContent = 'Logging in...';
+            btnSpinner.style.display = 'inline-block';
+            loginBtn.disabled = true;
+            
+            try {
+                // Call Python backend to authenticate
+                const response = await eel.authenticate_user(email, password)();
+                
+                if (response.status === "success") {
+                    showMessage(messageDiv, "Login successful! Launching app...", "success");
+                    
+                    // Launch main application
+                    const launchResult = await eel.launch_main_app()();
+                    if (launchResult.status !== "success") {
+                        showMessage(messageDiv, "Failed to launch application", "error");
+                    }
+                } else {
+                    showMessage(messageDiv, response.message, "error");
+                }
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(messageDiv, "An error occurred during login", "error");
+            } finally {
+                // Reset button state
+                btnText.textContent = 'Login';
+                btnSpinner.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        });
+        
+        function showMessage(element, message, type) {
+            element.textContent = message;
+            element.className = `message ${type}`;
+            element.style.display = 'block';
+            
+            if (type === "success") {
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

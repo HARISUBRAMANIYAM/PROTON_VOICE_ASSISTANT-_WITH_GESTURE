@@ -1,0 +1,729 @@
+<!---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Control</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <link rel="stylesheet" href="css/Gesture2.css">
+    <script type="text/javascript" src="js/navigate.js"></script>
+    <!--<style>
+        /* Main container styles*/
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        /* Button group styling */
+        .button-group {
+            margin: 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        /* Base button styles */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3cc5e7;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        
+        button:hover {
+            background-color: #58daec;
+            transform: translateY(-2px);
+        }
+        
+        /* Pulsing animation for start button */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(83, 202, 235, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        
+        /* Video container styling */
+        .video-container {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            border: 3px solid #4cc3e4;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #video-feed {
+            width: 100%;
+            height: 480px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            object-fit: cover;
+        }
+        
+        /* Gesture info panel */
+        .gesture-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            text-align: left;
+        }
+        
+        .gesture-list {
+            columns: 2;
+            column-gap: 20px;
+        }
+        
+        /* Active state for buttons */
+        .start-btn.active {
+            background-color: #49c5ff;
+            box-shadow: 0 0 10px #2fa9e2;
+        }
+
+        .stop-btn.active {
+            background-color: #56e6ff;
+            box-shadow: 0 0 10px #40c3ff;
+        }
+        
+        /* Navigation buttons */
+        .nav-buttons {
+            position: fixed;
+            top: 10px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .nav-buttons button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Stats panel */
+        .stats-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        /* Snapshot button */
+        .snapshot-btn {
+            background-color: #4CAF50;
+        }
+
+        .snapshot-btn:hover {
+            background-color: #45a049;
+        }
+        
+        /* Frame rate control */
+        .frame-rate-control {
+            margin: 10px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+
+        .frame-rate-control input {
+            flex-grow: 1;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .gesture-list {
+                columns: 1;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style
+</head>
+<body>
+    <header>
+        <div class="nav-buttons">
+            <button onclick="goBack()">⬅ Back</button>
+            <button onclick="goForward()">Forward ➡</button>
+        </div>
+    </header>
+    
+    <div class="container">
+        <h1>Gesture Control</h1>
+        <p>Click the button below to start or stop gesture recognition.</p>
+        
+        <div class="button-group">
+            <button onclick="startGesture()" class="start-btn pulse">Start Gesture Control</button>
+            <button onclick="stopGesture()" class="stop-btn">Stop Gesture Control</button>
+           
+        </div>
+        
+        <div class="video-container">
+            <img id="video-feed" src="" alt="Camera feed will appear here">
+            
+        </div>
+        
+        <div class="gesture-info">
+            <h2>Available Gestures</h2>
+            <div class="gesture-list">
+                <p><strong>✌️ V Gesture:</strong> Move cursor</p>
+                <p><strong>👊 Fist:</strong> Click and drag</p>
+                <p><strong>🖕 Middle finger:</strong> Left click</p>
+                <p><strong>☝️ Index finger:</strong> Right click</p>
+                <p><strong>🤏 Pinch (major hand):</strong> Adjust brightness/volume</p>
+                <p><strong>🤏 Pinch (minor hand):</strong> Scroll horizontally/vertically</p>
+                <p><strong>✌️ (closed):</strong> Double click</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    // ==================== GLOBAL VARIABLES ====================
+    let isGestureRunning = false;
+    let videoStreamInterval = null;
+    let frameRate = 50; // Default ~20fps (1000ms/50ms)
+    
+    const performanceStats = {
+        frameCount: 0,
+        lastFpsUpdate: 0,
+        currentFps: 0
+    };
+    
+    const gestureHistory = [];
+    const MAX_HISTORY = 20;
+    
+    // DOM Elements cache
+    const elements = {
+        videoFeed: document.getElementById('video-feed'),
+        startBtn: document.querySelector('.start-btn'),
+        stopBtn: document.querySelector('.stop-btn'),
+        fpsDisplay: document.createElement('div'),
+        gestureDisplay: document.createElement('div'),
+        statsPanel: document.createElement('div')
+    };
+    
+    
+    // ==================== UI INITIALIZATION ====================
+    function initUI() {
+        // Create stats panel
+        elements.statsPanel.className = 'stats-panel';
+        
+        // Add FPS display
+        elements.fpsDisplay.textContent = 'FPS: 0';
+        elements.statsPanel.appendChild(elements.fpsDisplay);
+        
+        // Add gesture display
+        elements.gestureDisplay.textContent = 'Last Gesture: None';
+        elements.statsPanel.appendChild(elements.gestureDisplay);
+        
+        // Add to video container
+        const videoContainer = document.querySelector('.video-container');
+        if (videoContainer) {
+            videoContainer.appendChild(elements.statsPanel);
+        }
+        
+        // Add snapshot button
+        const snapshotBtn = document.createElement('button');
+        snapshotBtn.textContent = 'Take Snapshot';
+        snapshotBtn.className = 'snapshot-btn';
+        snapshotBtn.onclick = takeSnapshot;
+        document.querySelector('.button-group').appendChild(snapshotBtn);
+        
+        // Add frame rate control
+        const frameRateControl = document.createElement('div');
+        frameRateControl.className = 'frame-rate-control';
+        frameRateControl.innerHTML = `
+            <label for="frameRate">Frame Rate: </label>
+            <input type="range" id="frameRate" min="16" max="100" value="${1000/frameRate}">
+            <span id="frameRateValue">${Math.round(1000/frameRate)} FPS</span>
+        `;
+        document.querySelector('.button-group').appendChild(frameRateControl);
+        
+        // Frame rate control event listener
+        document.getElementById('frameRate').addEventListener('input', (e) => {
+            const fps = parseInt(e.target.value);
+            document.getElementById('frameRateValue').textContent = `${fps} FPS`;
+            setFrameRate(1000 / fps);
+        });
+    }
+    
+    
+    // ==================== VIDEO STREAM FUNCTIONS ====================
+    function startVideoStream() {
+        // Stop any existing stream
+        stopVideoStream();
+        
+        // Reset performance stats
+        performanceStats.frameCount = 0;
+        performanceStats.lastFpsUpdate = Date.now();
+        
+        // Start new stream
+        videoStreamInterval = setInterval(async () => {
+            if (!isGestureRunning) {
+                stopVideoStream();
+                return;
+            }
+            
+            try {
+                const startTime = performance.now();
+                const frameData = await eel.get_video_frame()();
+                
+                if (frameData && elements.videoFeed) {
+                    elements.videoFeed.src = 'data:image/jpeg;base64,' + frameData;
+                    
+                    // Update performance stats
+                    performanceStats.frameCount++;
+                    const now = Date.now();
+                    if (now - performanceStats.lastFpsUpdate >= 1000) {
+                        performanceStats.currentFps = Math.round(
+                            (performanceStats.frameCount * 1000) / (now - performanceStats.lastFpsUpdate)
+                        );
+                        performanceStats.frameCount = 0;
+                        performanceStats.lastFpsUpdate = now;
+                        updateStatsDisplay();
+                    }
+                }
+            } catch (error) {
+                console.error("Video stream error:", error);
+                stopVideoStream();
+            }
+        }, frameRate);
+    }
+    
+    function stopVideoStream() {
+        if (videoStreamInterval) {
+            clearInterval(videoStreamInterval);
+            videoStreamInterval = null;
+        }
+    }
+    
+    function updateStatsDisplay() {
+        elements.fpsDisplay.textContent = `FPS: ${performanceStats.currentFps}`;
+        
+        if (gestureHistory.length > 0) {
+            elements.gestureDisplay.textContent = `Last Gesture: ${gestureHistory[0].gesture} (${gestureHistory[0].hand})`;
+        }
+    }
+    
+    
+    // ==================== GESTURE CONTROL FUNCTIONS ====================
+    async function startGesture() {
+        if (!isGestureRunning) {
+            try {
+                // UI feedback
+                if (elements.startBtn) {
+                    elements.startBtn.disabled = true;
+                    elements.startBtn.textContent = 'Initializing...';
+                }
+                
+                const response = await eel.start_gesture()();
+                console.log(response.message);
+                isGestureRunning = true;
+                
+                // Update UI
+                if (elements.startBtn) {
+                    elements.startBtn.classList.add('active');
+                    elements.startBtn.disabled = false;
+                    elements.startBtn.textContent = 'Stop Gesture Control';
+                }
+                if (elements.stopBtn) {
+                    elements.stopBtn.classList.remove('active');
+                }
+                
+                // Start video streaming
+                startVideoStream();
+                
+                // Start listening for gesture updates
+                listenForGestureUpdates();
+                
+            } catch (error) {
+                console.error("Gesture start error:", error);
+                alert("Failed to start gesture control");
+                
+                // Reset UI
+                if (elements.startBtn) {
+                    elements.startBtn.disabled = false;
+                    elements.startBtn.textContent = 'Start Gesture Control';
+                }
+            }
+        }else{
+            await stopGesture();
+        }
+    }
+    
+    async function stopGesture() {
+        if (isGestureRunning) {
+            try {
+                // UI feedback
+                if (elements.stopBtn) {
+                    elements.stopBtn.disabled = true;
+                    elements.stopBtn.textContent = 'Stopping...';
+                }
+                
+                const response = await eel.stop_gesture()();
+                console.log(response.message);
+                isGestureRunning = false;
+                
+                // Update UI
+                if (elements.startBtn) {
+                    elements.startBtn.classList.remove('active');
+                    elements.startBtn.textContent = 'Start Gesture Control';
+                }
+                if (elements.stopBtn) {
+                    elements.stopBtn.classList.add('active');
+                    elements.stopBtn.disabled = false;
+                    elements.stopBtn.textContent = 'Gesture Control Stopped';
+                }
+                
+                // Stop video streaming
+                stopVideoStream();
+                
+                // Clear video feed
+                if (elements.videoFeed) {
+                    elements.videoFeed.src = '';
+                }
+                
+            } catch (error) {
+                console.error("Gesture stop error:", error);
+                alert("Failed to stop gesture control");
+                
+                // Reset UI
+                if (elements.stopBtn) {
+                    elements.stopBtn.disabled = false;
+                    elements.stopBtn.textContent = 'Stop Gesture Control';
+                }
+            }
+        }
+    }
+    
+    function listenForGestureUpdates() {
+        eel.expose(updateGestureHistory);
+        
+        function updateGestureHistory(gesture, hand) {
+            // Add to beginning of array
+            gestureHistory.unshift({
+                timestamp: new Date().toISOString(),
+                gesture: gesture,
+                hand: hand
+            });
+            
+            // Keep only the last MAX_HISTORY items
+            if (gestureHistory.length > MAX_HISTORY) {
+                gestureHistory.pop();
+            }
+            
+            updateStatsDisplay();
+        }
+    }
+    
+    
+    // ==================== UTILITY FUNCTIONS ====================
+    function setFrameRate(newFrameRate) {
+        frameRate = Math.max(16, Math.min(1000, newFrameRate)); // Clamp between 16ms (~60fps) and 1000ms (1fps)
+        if (isGestureRunning) {
+            startVideoStream(); // Restart with new frame rate
+        }
+    }
+    
+    function takeSnapshot() {
+        if (elements.videoFeed && elements.videoFeed.src) {
+            const canvas = document.createElement('canvas');
+            canvas.width = elements.videoFeed.videoWidth || 640;
+            canvas.height = elements.videoFeed.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(elements.videoFeed, 0, 0, canvas.width, canvas.height);
+            
+            const link = document.createElement('a');
+            link.download = `gesture-snapshot-${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    }
+    
+    
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        initUI();
+    });
+    
+    // Expose functions to global scope
+    window.startGesture = startGesture;
+    window.stopGesture = stopGesture;
+    window.takeSnapshot = takeSnapshot;
+    </script>
+</body>
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Control</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <link rel="stylesheet" href="css/Gesture2.css">
+    <style>
+        .stats-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .snapshot-btn {
+            background-color: #4CAF50;
+        }
+        
+        .frame-rate-control {
+            margin: 10px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gesture Control</h1>
+        
+        <div class="button-group">
+            <button id="startBtn" class="start-btn">Start Gesture Control</button>
+            <button id="stopBtn" class="stop-btn" disabled>Stop Gesture Control</button>
+        </div>
+        
+        <div class="video-container">
+            <img id="video-feed" src="" alt="Camera feed">
+        </div>
+    </div>
+
+    <script>
+    // Global variables
+    let isGestureRunning = false;
+    let videoStreamInterval = null;
+    let frameRate = 100; // Default 10fps (1000ms/100ms)
+    
+    // DOM elements
+    const elements = {
+        videoFeed: document.getElementById('video-feed'),
+        startBtn: document.getElementById('startBtn'),
+        stopBtn: document.getElementById('stopBtn'),
+        statsPanel: document.createElement('div')
+    };
+    
+    // Initialize UI
+    function initUI() {
+        // Create stats panel
+        elements.statsPanel.className = 'stats-panel';
+        elements.statsPanel.innerHTML = '<div id="fps-display">FPS: 0</div><div id="gesture-display">Gesture: None</div>';
+        document.querySelector('.video-container').appendChild(elements.statsPanel);
+        
+        // Add snapshot button
+        const snapshotBtn = document.createElement('button');
+        snapshotBtn.className = 'snapshot-btn';
+        snapshotBtn.textContent = 'Take Snapshot';
+        snapshotBtn.onclick = takeSnapshot;
+        document.querySelector('.button-group').appendChild(snapshotBtn);
+        
+        // Add frame rate control
+        const frameRateControl = document.createElement('div');
+        frameRateControl.className = 'frame-rate-control';
+        frameRateControl.innerHTML = `
+            <label>Frame Rate: </label>
+            <input type="range" id="frameRate" min="10" max="60" value="${1000/frameRate}">
+            <span id="frameRateValue">${Math.round(1000/frameRate)} FPS</span>
+        `;
+        document.querySelector('.button-group').appendChild(frameRateControl);
+        
+        // Frame rate control event
+        document.getElementById('frameRate').addEventListener('input', (e) => {
+            const fps = parseInt(e.target.value);
+            document.getElementById('frameRateValue').textContent = `${fps} FPS`;
+            setFrameRate(1000 / fps);
+        });
+    }
+    
+    // Start video stream
+    function startVideoStream() {
+        stopVideoStream();
+        
+        videoStreamInterval = setInterval(async () => {
+            if (!isGestureRunning) {
+                stopVideoStream();
+                return;
+            }
+            
+            try {
+                const frameData = await eel.get_video_frame()();
+                if (frameData && frameData.status === 'success') {
+                    elements.videoFeed.src = 'data:image/jpeg;base64,' + frameData.frame;
+                    updateStats();
+                }
+            } catch (error) {
+                console.error("Video stream error:", error);
+                stopVideoStream();
+            }
+        }, frameRate);
+    }
+    
+    // Stop video stream
+    function stopVideoStream() {
+        if (videoStreamInterval) {
+            clearInterval(videoStreamInterval);
+            videoStreamInterval = null;
+        }
+        elements.videoFeed.src = '';
+    }
+    
+    // Update stats
+    function updateStats() {
+        // Implement your FPS calculation here
+        document.getElementById('fps-display').textContent = 'FPS: ' + Math.floor(Math.random() * 10) + 20;
+    }
+    
+    // Set frame rate
+    function setFrameRate(newFrameRate) {
+        frameRate = Math.max(16, Math.min(1000, newFrameRate));
+        if (isGestureRunning) {
+            startVideoStream();
+        }
+    }
+    
+    // Take snapshot
+    function takeSnapshot() {
+        if (elements.videoFeed && elements.videoFeed.src) {
+            const canvas = document.createElement('canvas');
+            canvas.width = elements.videoFeed.videoWidth || 640;
+            canvas.height = elements.videoFeed.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(elements.videoFeed, 0, 0, canvas.width, canvas.height);
+            
+            const link = document.createElement('a');
+            link.download = `gesture-snapshot-${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    }
+    
+    // Start gesture control
+    async function startGesture() {
+        if (!isGestureRunning) {
+            try {
+                elements.startBtn.disabled = true;
+                elements.startBtn.textContent = 'Starting...';
+                
+                const response = await eel.start_gesture()();
+                if (response.status === 'success') {
+                    isGestureRunning = true;
+                    elements.startBtn.disabled = false;
+                    elements.startBtn.textContent = 'Stop Gesture Control';
+                    elements.stopBtn.disabled = false;
+                    startVideoStream();
+                } else {
+                    throw new Error(response.message);
+                }
+            } catch (error) {
+                console.error("Gesture start error:", error);
+                alert("Failed to start gesture control: " + error.message);
+                elements.startBtn.disabled = false;
+                elements.startBtn.textContent = 'Start Gesture Control';
+            }
+        } else {
+            await stopGesture();
+        }
+    }
+    
+    // Stop gesture control
+    async function stopGesture() {
+        if (isGestureRunning) {
+            try {
+                elements.stopBtn.disabled = true;
+                elements.stopBtn.textContent = 'Stopping...';
+                
+                const response = await eel.stop_gesture()();
+                if (response.status === 'success') {
+                    isGestureRunning = false;
+                    elements.startBtn.textContent = 'Start Gesture Control';
+                    elements.stopBtn.disabled = true;
+                    elements.stopBtn.textContent = 'Stopped';
+                    stopVideoStream();
+                } else {
+                    throw new Error(response.message);
+                }
+            } catch (error) {
+                console.error("Gesture stop error:", error);
+                alert("Failed to stop gesture control: " + error.message);
+                elements.stopBtn.disabled = false;
+                elements.stopBtn.textContent = 'Stop Gesture Control';
+            }
+        }
+    }
+    
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+        initUI();
+        
+        // Set up button event listeners
+        elements.startBtn.addEventListener('click', startGesture);
+        elements.stopBtn.addEventListener('click', stopGesture);
+        
+        // Check if gesture is already active
+        eel.is_gesture_active()(active => {
+            if (active) {
+                isGestureRunning = true;
+                elements.startBtn.textContent = 'Stop Gesture Control';
+                elements.stopBtn.disabled = false;
+                startVideoStream();
+            }
+        });
+    });
+    </script>
+</body>
+</html>

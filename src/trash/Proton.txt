@@ -1,0 +1,127 @@
+import eel
+import os
+from queue import Queue
+import Proton
+import logging
+import json 
+import os
+import atexit
+from  datetime import datetime
+logging.basicConfig(level=logging.INFO,format="%(asctime)s - %(levelname)s - %(message)s")
+ #CHAT_HISTORY_DIR ="Chat_history"
+class ChatBot:
+    CHAT_HISTORY_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),"chat_history")
+    started = False
+    userinputQueue = Queue()
+    chat_data = []
+    session_file = None
+    if not os.path.exists(CHAT_HISTORY_DIR):
+        os.makedirs(CHAT_HISTORY_DIR)
+    @staticmethod
+    def get_chat_filename():
+        return os.path.join(ChatBot.CHAT_HISTORY_DIR, datetime.now().strftime("%Y-%m-%d_%I-%M-%p") + ".json")
+    @staticmethod
+    @eel.expose
+    def store_chat_message(sender,message):
+        ChatBot.chat_data.append({"timestamp":datetime.now().strftime("%Y-%m-%d %H:%M:%S"),"sender":sender,"message":message})
+        ChatBot.save_chat_history()
+    @staticmethod
+    @eel.expose
+    def get_chat_history_files():
+        files = sorted(os.listdir(ChatBot.CHAT_HISTORY_DIR),reverse=True)
+        return files
+    @staticmethod
+    @eel.expose
+    def save_chat_history():
+        if ChatBot.chat_data:
+            if ChatBot.session_file is None:
+                ChatBot.session_file = ChatBot.get_chat_filename()
+            try:
+                with open(ChatBot.session_file,"w",encoding="utf-8") as f:
+                    json.dump(ChatBot.chat_data,f,indent=4)
+                logging.info(f"Chat history save to {ChatBot.session_file}")
+            except Exception as e:
+                logging.error(f"Failed to save chat history to {ChatBot.session_file} due to {e}") 
+    @staticmethod
+    @eel.expose
+    def load_latest_chat():
+        try:
+            files = sorted(os.listdir(ChatBot.CHAT_HISTORY_DIR),reverse=True)
+            if not files:
+                return []
+            latest_file = os.path.join(ChatBot.CHAT_HISTORY_DIR,files[0])
+            with open(latest_file,"r",encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logging.error(f"Failed to load chat history from {latest_file} due to {e}")
+            return []
+    @staticmethod
+    @eel.expose
+    def load_chat_file(filename):
+        filepath =os.path.join(ChatBot.CHAT_HISTORY_DIR,filename)
+        if os.path.exists(filepath):
+            with open(filepath,"r",encoding="utf-8") as f:
+                return json.load(f)
+        return []
+
+    atexit.register(save_chat_history)
+    
+    @staticmethod
+    def isUserInput():
+        return not ChatBot.userinputQueue.empty()
+
+    @staticmethod
+    def popUserInput():
+        return ChatBot.userinputQueue.get()
+
+    def close_callback(route, websockets):
+        if not websockets:
+            logging.info('Closing application...')
+            ChatBot.save_chat_history()
+            os._exit(0)
+
+    @eel.expose
+    def getUserInput(msg):
+        ChatBot.userinputQueue.put(msg)
+        print("users:",msg)
+        response = Proton.respond(msg)
+        ChatBot.store_chat_message("User",msg)
+        ChatBot.store_chat_message("Bot",response)
+        ChatBot.addAppMsg(response)
+        return response
+    @staticmethod
+    def close():
+        ChatBot.started = False
+    @staticmethod
+    def addUserMsg(msg):
+        logging.info(f"User:{msg}")
+        eel.addUserMsg(msg)
+        print(msg)
+    @staticmethod    
+    def addAppMsg(msg):
+        logging.info(f"Bot:{msg}")
+        eel.addAppMsg(msg)
+        print("Bot:",msg)
+    @staticmethod
+    def start():
+        path = os.path.dirname(os.path.abspath(__file__))
+        eel.init(path + r'\web', allowed_extensions=['.js', '.html'])
+        try:
+            eel.start('index.html', mode='chrome',
+                                    host='localhost',
+                                    port=27005,
+                                    block=False,
+                                    size=(350, 480),
+                                    position=(10,100),
+                                    disable_cache=True,
+                                    close_callback=ChatBot.close_callback)
+            ChatBot.started = True
+            while ChatBot.started:
+                try:
+                    eel.sleep(10.0)
+                except:
+                    #main thread exited
+                    break
+        
+        except Exception as e:
+            logging.error(f"Failed to start eel due to {e}")

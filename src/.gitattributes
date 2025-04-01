@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+*.py text diff=python
+*.md text diff=markdown
+*.html text diff=html
+*.css text diff=css
+*.js text
+*.json text
+*.yaml text
+*.yml text
+/src/guest/** binary

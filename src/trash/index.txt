@@ -1,0 +1,93 @@
+<!DOCTYPE html >
+<html lang="en">
+<head>
+    <meta charset="Utf-8">
+    <title>Proton</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script type="text/javascript" src="/eel.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+    <!-- Sidebar Menu -->
+    <button id="menuToggle" title="menuToggleBtn"><i class="fas fa-bars"></i></button>
+    <div class="sidebar">
+        <ul class="menu">
+            <li><a href="#"><i class="fas fa-info-circle"></i> Menu </a></li>
+            <li><a href="#" id="clearSessions">Clear All Chats</a></li>
+            <li><a href="#" id="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a href="#" id="chatHistoryBtn">Chat History</a></li>
+        </ul>
+    </div>
+     <!--Chat History Container-->
+    <div class="chat-history-container" id="chatHistory">
+        <h3>Chat History <button id ="closeCH">x</button></h3>
+        <ul id="chatHistoryList"></ul>
+        <div class="chat-history-filenames">
+            <h4>Saved Chats:</h4>
+            <ul id="chatHistoryFiles"></ul>
+        </div>
+        <ul id="chatHistoryList"></ul>
+    </div>
+    
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>Chat Assistant</h2>
+                <select id="chatFiles" title="Chat Files" onchange="loadChatContent(this.value)">
+                    <option value="">Select Chat</option>
+                </select>
+            </div>
+    <!--<main class="container">
+        <div class="chat-history">
+            <h2>Chat History</h2>
+            <ul id="chat-history-list"></ul>
+        </div>-->
+
+
+        <!--<div class="chat-display">
+            <h2>Chat Content</h2>
+            <pre id="chat-content">Select a chat to view...</pre>
+        </div>
+    </main>-->
+
+    
+    <!-- Header -->
+    <header>
+        <div class="header-wrapper">
+            <p class="awesome">PROTON Welcomes you!</p>
+            <div class="logo">
+                <img src="images/icon.png" width="35" height="33" alt="Proton Logo">
+            </div>
+        </div>
+    </header>
+
+    <!-- ChatBot -->
+    <div class="chat-container">
+        <div class="chat_box">
+            <div class="conv-form-wrapper">
+                <!-- Chat Messages Container -->
+                <div id="messages">
+                    <br><br>
+                </div>
+                <!-- Input Area -->
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="I'm listening...">
+                    <button id="userInputButton" title="Voice Input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="chatHistoryContent"></p>
+        </div>
+    </div>    
+    <script type="text/javascript" src="js/main.js" defer></script>
+</body>
+</html>

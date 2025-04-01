@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Proton Virtual Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/about2.css">
+    
+    <!-- Eel and Navigation -->
+    <script type="text/javascript" src="/eel.js"></script>
+    <script >
+        // navigation.js
+function navigateTo(page) {
+    console.log("Navigating to:", page);
+    window.location.href = page;
+}
+
+function goBack() {
+    console.log("goBack called");
+    window.history.back();
+}
+
+function goForward() {
+    console.log("goForward called");
+    window.history.forward();
+}
+
+// Make navigation functions globally available
+window.navigateTo = navigateTo;
+window.goBack = goBack;
+window.goForward = goForward;
+
+console.log("Navigation functions initialized");
+    </script>
+    
+</head>
+<body>
+    <header>
+        <h1>Proton Virtual Assistant</h1>
+        <p>Your AI-powered voice and gesture-controlled assistant</p>
+        <div class="nav-buttons">
+            <button onclick="goBack()">⬅ Back</button>
+            <button onclick="goForward()">Forward ➡</button>
+        </div>
+    </header>
+    
+    <section class="about">
+        <h2>About Proton</h2>
+        <p>Proton is an advanced virtual assistant that responds to <strong>voice commands</strong> and <strong>gestures</strong> to perform various tasks, making human-computer interaction seamless and intuitive.</p>
+        <p>With Proton, you can interact naturally with your device, automate tasks, and improve productivity using AI-driven voice recognition and gesture tracking.</p>
+    </section>
+    
+    <section class="features">
+        <h2>Key Features</h2>
+        <ul>
+            <li> Voice Command Recognition</li>
+            <li> Gesture-Based Controls</li>
+            <li> Web UI with Chat History</li>
+            <li> Mouse Movement via Voice</li>
+            <li> Secure Login System</li>
+            <li> AI-Powered Responses</li>
+            <li> Customizable Commands</li>
+        </ul>
+    </section>
+    
+    <section class="user-guide">
+        <h2>User Guide</h2>
+        <h3>Voice Commands</h3>
+        <p>Simply say a command like:</p>
+        <ul>
+            <li><strong>"Open Notepad"</strong> - Launches Notepad</li>
+            <li><strong>"Search Google for AI"</strong> - Performs a Google search</li>
+            <li><strong>"Play Music"</strong> - Starts playing music</li>
+        </ul>
+        
+        <h3>Gesture Recognition</h3>
+        <p>Use predefined hand gestures to trigger actions:</p>
+        <ul>
+            <li><strong>Swipe Right:</strong> Move to the next window</li>
+            <li><strong>Swipe Left:</strong> Go back to the previous window</li>
+            <li><strong>Raise Hand:</strong> Pause current action</li>
+            <li><strong>Two Fingers Up:</strong> Open task manager</li>
+            <li><strong>Circle Motion:</strong> Scroll up or down</li>
+        </ul>
+    </section>
+    
+    <section class="tech-stack">
+        <h2>Technology Stack</h2>
+        <ul>
+            <li> <strong>Python</strong> - Core backend logic</li>
+            <li> <strong>EEL</strong> - Web-based UI backend</li>
+            <li> <strong>HTML, CSS, JavaScript</strong> - Frontend design</li>
+            <li> <strong>OpenCV</strong> - Gesture detection</li>
+            <li> <strong>SpeechRecognition</strong> - Voice processing</li>
+        </ul>
+    </section>
+    
+    <section class="contact">
+        <h2>Get in Touch</h2>
+        <p>Have questions or feedback? Reach out to us!</p>
+        <p>Email: <a href="mailto:support@protonai.com">support@protonai.com</a></p>
+    </section>
+    
+    <footer>
+        <p>&copy; 2025 Proton Virtual Assistant. All Rights Reserved.</p>
+    </footer>
+    
+    <!-- Main JavaScript -->
+    <script type="text/javascript" src="js/main.js"></script>
+</body>
+<style>
+    /* styles.css
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    color: #333;
+    text-align: center;
+}
+
+header {
+    background-color: #AED6F1;
+    padding: 30px;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+section {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    max-width: 800px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+
+section:hover {
+    transform: scale(1.02);
+}
+
+h2 {
+    color: #3498db;
+    border-bottom: 3px solid #AED6F1;
+    display: inline-block;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 10px 0;
+    font-size: 18px;
+    background: #AED6F1;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    display: inline-block;
+    width: 90%;
+    transition: background 0.3s ease;
+}
+
+ul li:hover {
+    background: #85C1E9;
+}
+
+footer {
+    background-color: #AED6F1;
+    padding: 15px;
+    margin-top: 20px;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+.nav-buttons {
+    position: fixed;
+    top: 10px;
+    right: 30px;
+    z-index: 1000;
+    }
+  
+    .nav-buttons button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    margin: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 5px;
+        }
+  
+    .nav-buttons button:hover {
+        background-color: #0056b3;
+    }*/
+</style>
+</html>

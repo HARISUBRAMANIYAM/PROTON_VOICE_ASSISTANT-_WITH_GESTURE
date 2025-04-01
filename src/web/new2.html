@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gesture Control</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-start {
+            background-color: #3cc5e7;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background-color: #58daec;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-stop {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background-color: #ff8787;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-snapshot {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-snapshot:hover {
+            background-color: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .video-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #video-feed {
+            width: 100%;
+            max-height: 480px;
+            object-fit: cover;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gesture-info {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .gesture-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .gesture-list p {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        .frame-rate-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .frame-rate-control label {
+            font-weight: bold;
+        }
+
+        .frame-rate-control input[type="range"] {
+            flex-grow: 1;
+            max-width: 300px;
+        }
+
+        @media (max-width: 600px) {
+            .gesture-list {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gesture Control</h1>
+        
+        <div class="button-group">
+            <button class="btn btn-start">Start Gesture Control</button>
+            <button class="btn btn-stop">Stop Gesture Control</button>
+            <button class="btn btn-snapshot">Take Snapshot</button>
+        </div>
+
+        <div class="frame-rate-control">
+            <label for="frameRate">Frame Rate</label>
+            <input type="range" id="frameRate" min="16" max="100" value="50">
+            <span id="frameRateValue">20 FPS</span>
+        </div>
+
+        <div class="video-container">
+            <div class="stats-panel">
+                <div id="fps-display">FPS: 0</div>
+                <div id="gesture-display">Last Gesture: None</div>
+            </div>
+            <img id="video-feed" src="" alt="Camera feed will appear here">
+        </div>
+
+        <div class="gesture-info">
+            <h2>Available Gestures</h2>
+            <div class="gesture-list">
+                <p><strong>✌️</strong> V Gesture: Move cursor</p>
+                <p><strong>👊</strong> Fist: Click and drag</p>
+                <p><strong>🖕</strong> Middle finger: Left click</p>
+                <p><strong>☝️</strong> Index finger: Right click</p>
+                <p><strong>🤏</strong> Pinch (major hand): Adjust brightness/volume</p>
+                <p><strong>🤏</strong> Pinch (minor hand): Scroll horizontally/vertically</p>
+                <p><strong>✌️</strong> (closed): Double click</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

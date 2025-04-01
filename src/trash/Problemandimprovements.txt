@@ -1,0 +1,10 @@
+the problem and improvemnet section 
+**the toggle of the  chat history container is not working  --OK
+** once the gesture module is called that should be visible inside the webpage area but it's visible in the system alone
+**connection of the chat history data to the chat container --ok
+**creating of the login page for this module--OK
+**add some new functionalites to the Proton files 
+    ***like once it's calle for the note pad should ask for typing and the voice type should be written in the opened note 
+    ****open camera functionalites -ok
+    ****opening some essential application for the performing -ok
+    

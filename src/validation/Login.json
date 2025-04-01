@@ -1,0 +1,24 @@
+{
+    "harishsubramanian2@gmail.com": {
+        "password": "hari.2004"
+    },
+    "newuser@gmail.com": {
+        "password": "User@123"
+    },
+    "newUser@gmail.com": {
+        "password": "User@123"
+    },
+    "s.k.anbu000s@gmail.com": {
+        "password": "anbu12345"
+    },
+    "admin@gmail.com": {
+        "password": "bce56ab3d7ea91e1be3d97739c7c555a2396b7a08229a30c2a974339c005d71a",
+        "fullname": "Hari",
+        "created_at": "2025-03-25 12:07:33.438763"
+    },
+    "new@gmail.com": {
+        "password": "e98d7ab34332ac9d633b063f4dd11712349779dff47153ef091d37a61ee68bd1",
+        "fullname": "newUser",
+        "created_at": "2025-04-01 07:32:46.590211"
+    }
+}

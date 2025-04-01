@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton AI Assistant</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- External CSS Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    
+    <!-- External JavaScript Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script type="text/javascript" src="/eel.js"></script>
+    
+    <style>
+        /* Common Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: #333;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .active-page {
+            display: block;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #AED6F1;
+            padding: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            margin-top: 10px;
+        }
+
+        .nav-buttons button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Login and Register Styles */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .auth-container h1 {
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .auth-container button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .auth-container button:hover {
+            background-color: #2980b9;
+        }
+
+        .social-login {
+            margin-top: 20px;
+        }
+
+        .social-login button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .google-btn {
+            background-color: #DB4437;
+        }
+
+        .facebook-btn {
+            background-color: #4267B2;
+        }
+
+        .github-btn {
+            background-color: #333;
+        }
+
+        .error-message {
+            color: red;
+            display: none;
+            margin: 10px 0;
+        }
+
+        /* About Page Styles */
+        .about-page section {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            max-width: 800px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .about-page section:hover {
+            transform: scale(1.02);
+        }
+
+        .about-page h2 {
+            color: #3498db;
+            border-bottom: 3px solid #AED6F1;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .about-page ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .about-page ul li {
+            margin: 10px 0;
+            font-size: 18px;
+            background: #AED6F1;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            display: inline-block;
+            width: 90%;
+            transition: background 0.3s ease;
+        }
+
+        .about-page ul li:hover {
+            background: #85C1E9;
+        }
+
+        /* Chat Page Styles */
+        .chat-container {
+            max-width: 1000px;
+            margin: 20px auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat_box {
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .conv-form-wrapper {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 10px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+        }
+
+        #userInput {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        #userInputButton {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 15px;
+            cursor: pointer;
+        }
+
+        /* Sidebar Styles */
+        #menuToggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            transition: left 0.3s ease;
+            z-index: 999;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar ul {
+            list-style-type: none;
+            padding: 20px;
+        }
+
+        .sidebar ul li {
+            margin: 15px 0;
+        }
+
+        .sidebar ul li a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #444;
+        }
+
+        /* Chat History Panel Styles */
+        .unified-chat-history {
+            position: fixed;
+            right: -500px;
+            top: 0;
+            width: 500px;
+            height: 100%;
+            background-color: white;
+            z-index: 998;
+            transition: right 0.3s ease;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .unified-chat-history.open {
+            right: 0;
+        }
+
+        .history-header {
+            padding: 15px;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .history-body {
+            display: flex;
+            height: calc(100% - 56px);
+        }
+
+        .history-sidebar {
+            width: 30%;
+            background-color: #f5f5f5;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .history-content {
+            width: 70%;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #AED6F1;
+            padding: 15px;
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Header -->
+    <header>
+        <div class="header-wrapper">
+            <div class="logo">
+                <img src="images/icon.png" width="35" height="33" alt="Proton Logo">
+            </div>
+            <h1>Proton AI Assistant</h1>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <nav>
+            <ul>
+                <li><a href="#" onclick="showPage('home-page'); return false;">Home</a></li>
+                <li><a href="#" onclick="showPage('about-page'); return false;">About</a></li>
+                <li><a href="#" class="auth-nav" onclick="showPage('login-page'); return false;">Login</a></li>
+                <li><a href="#" class="auth-nav" onclick="showPage('register-page'); return false;">Register</a></li>
+                <li><a href="#" class="user-nav" style="display:none;" onclick="logout(); return false;">Logout</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <button onclick="goBack()">⬅ Back</button>
+                <button onclick="goForward()">Forward ➡</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Sidebar Menu (visible after login) -->
+    <button id="menuToggle" title="Toggle Menu" style="display:none;"><i class="fas fa-bars"></i></button>
+    <div class="sidebar">
+        <ul class="menu">
+            <li><a href="#"><i class="fas fa-info-circle"></i> Menu</a></li>
+            <li><a href="#" id="clearSessions">Clear All Chats</a></li>
+            <li><a href="#" id="logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a href="#" id="chatHistoryBtn">Chat History</a></li>
+        </ul>
+    </div>
+
+    <!-- Home Page (Chat Interface) -->
+    <div id="home-page" class="page">
+        <!-- Main Content Area -->
+        <main>
+            <!-- Chat Container -->
+            <div class="chat-container">
+                <div class="chat_box">
+                    <div class="conv-form-wrapper">
+                        <!-- Chat Messages Container -->
+                        <div id="messages"></div>
+                        
+                        <!-- Input Area -->
+                        <div class="input-area">
+                            <input type="text" id="userInput" placeholder="I'm listening...">
+                            <button id="userInputButton" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Unified Chat History Panel -->
+        <section class="unified-chat-history" id="unifiedChatHistory">
+            <div class="history-header">
+                <h3>Chat History</h3>
+                <button id="closeHistory" class="close-btn" title="Close History">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="history-body">
+                <div class="history-sidebar">
+                    <button id="refreshHistory" class="btn">Refresh History</button>
+                    <h4>Saved Chats:</h4>
+                    <ul id="chatHistoryFiles">
+                        <!-- Chat files will be displayed here -->
+                    </ul>
+                </div>
+                <div class="history-content">
+                    <div id="historyDisplayArea">
+                        <p class="select-prompt">Select a chat to view its history</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- About Page -->
+    <div id="about-page" class="page about-page">
+        <section class="about">
+            <h2>About Proton</h2>
+            <p>Proton is an advanced virtual assistant that responds to <strong>voice commands</strong> and <strong>gestures</strong> to perform various tasks, making human-computer interaction seamless and intuitive.</p>
+            <p>With Proton, you can interact naturally with your device, automate tasks, and improve productivity using AI-driven voice recognition and gesture tracking.</p>
+        </section>
+        
+        <section class="features">
+            <h2>Key Features</h2>
+            <ul>
+                <li>Voice Command Recognition</li>
+                <li>Gesture-Based Controls</li>
+                <li>Web UI with Chat History</li>
+                <li>Mouse Movement via Voice</li>
+                <li>Secure Login System</li>
+                <li>AI-Powered Responses</li>
+                <li>Customizable Commands</li>
+            </ul>
+        </section>
+        
+        <section class="user-guide">
+            <h2>User Guide</h2>
+            <h3>Voice Commands</h3>
+            <p>Simply say a command like:</p>
+            <ul>
+                <li><strong>"Open Notepad"</strong> - Launches Notepad</li>
+                <li><strong>"Search Google for AI"</strong> - Performs a Google search</li>
+                <li><strong>"Play Music"</strong> - Starts playing music</li>
+            </ul>
+            
+            <h3>Gesture Recognition</h3>
+            <p>Use predefined hand gestures to trigger actions:</p>
+            <ul>
+                <li><strong>Swipe Right:</strong> Move to the next window</li>
+                <li><strong>Swipe Left:</strong> Go back to the previous window</li>
+                <li><strong>Raise Hand:</strong> Pause current action</li>
+                <li><strong>Two Fingers Up:</strong> Open task manager</li>
+                <li><strong>Circle Motion:</strong> Scroll up or down</li>
+            </ul>
+        </section>
+        
+        <section class="tech-stack">
+            <h2>Technology Stack</h2>
+            <ul>
+                <li><strong>Python</strong> - Core backend logic</li>
+                <li><strong>EEL</strong> - Web-based UI backend</li>
+                <li><strong>HTML, CSS, JavaScript</strong> - Frontend design</li>
+                <li><strong>OpenCV</strong> - Gesture detection</li>
+                <li><strong>SpeechRecognition</strong> - Voice processing</li>
+            </ul>
+        </section>
+        
+        <section class="contact">
+            <h2>Get in Touch</h2>
+            <p>Have questions or feedback? Reach out to us!</p>
+            <p>Email: <a href="mailto:support@protonai.com">support@protonai.com</a></p>
+        </section>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="page">
+        <div class="auth-container">
+            <h1>Login to Proton</h1>
+            <p>Access your AI-powered assistant</p>
+            
+            <div id="login-error" class="error-message"></div>
+            
+            <form id="loginForm">
+                <input type="email" id="login-email" name="username" placeholder="Email" autocomplete="username" required>
+                <input type="password" id="login-password" name="password" placeholder="Password" autocomplete="current-password" required>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+            
+            <div class="social-login">
+                <p>Or login with:</p>
+                <button class="google-btn" type="button">Login with Google</button>
+                <button class="facebook-btn" type="button">Login with Facebook</button>
+                <button class="github-btn" type="button">Login with GitHub</button>
+            </div>
+            
+            <p class="register-link">Don't have an account? <a href="#" onclick="showPage('register-page'); return false;">Sign up</a></p>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="register-page" class="page">
+        <div class="auth-container">
+            <h1>Create an Account</h1>
+            <p>Join Proton AI-powered assistant</p>
+            
+            <div id="register-error" class="error-message"></div>
+            
+            <form id="registerForm">
+                <input type="email" id="register-email" name="email" placeholder="Email" autocomplete="email" required>
+                <input type="text" id="fullname" name="fullname" placeholder="Full Name" autocomplete="name" required>
+                <input type="password" id="register-password" name="password" placeholder="Password" autocomplete="new-password" required>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm Password" autocomplete="new-password" required>
+                <button type="submit" class="register-btn">
+                    <span class="button-text">Register</span>
+                    <span class="loading-spinner">Loading...</span>
+                </button>
+            </form>
+            
+            <p class="login-link">Already have an account? <a href="#" onclick="showPage('login-page'); return false;">Login</a></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Proton Virtual Assistant. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Main JavaScript -->
+    <script>
+        // Page Navigation System
+        let currentPage = null;
+        let pageHistory = [];
+        let historyPosition = -1;
+        let isLoggedIn = false;
+
+        // Show specified page and update history
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            
+            // Show the requested page
+            document.getElementById(pageId).classList.add('active-page');
+            
+            // Update page history
+            if (currentPage !== pageId) {
+                // If we're not at the end of the history, truncate the forward history
+                if (historyPosition < pageHistory.length - 1) {
+                    pageHistory = pageHistory.slice(0, historyPosition + 1);
+                }
+                
+                pageHistory.push(pageId);
+                historyPosition = pageHistory.length - 1;
+                currentPage = pageId;
+            }
+            
+            // Scroll to top of page
+            window.scrollTo(0, 0);
+        }
+
+        // Go back in history
+        function goBack() {
+            if (historyPosition > 0) {
+                historyPosition--;
+                currentPage = pageHistory[historyPosition];
+                showPageWithoutHistory(currentPage);
+            }
+        }
+
+        // Go forward in history
+        function goForward() {
+            if (historyPosition < pageHistory.length - 1) {
+                historyPosition++;
+                currentPage = pageHistory[historyPosition];
+                showPageWithoutHistory(currentPage);
+            }
+        }
+
+        // Show page without updating history
+        function showPageWithoutHistory(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active-page');
+            });
+            document.getElementById(pageId).classList.add('active-page');
+            currentPage = pageId;
+        }
+
+        // Toggle sidebar menu
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        });
+
+        // Toggle chat history panel
+        document.getElementById('chatHistoryBtn').addEventListener('click', function() {
+            document.getElementById('unifiedChatHistory').classList.toggle('open');
+        });
+
+        // Close chat history panel
+        document.getElementById('closeHistory').addEventListener('click', function() {
+            document.getElementById('unifiedChatHistory').classList.remove('open');
+        });
+
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errorElement = document.getElementById('login-error');
+            
+            try {
+                // For demo purposes - simulated login success if email contains 'user'
+                // In production, replace with proper authentication
+                if (email.includes('user') && password.length > 0) {
+                    // Login success
+                    setLoggedIn(true);
+                    showPage('home-page');
+                } else {
+                    // Login failure
+                    showError(errorElement, 'Invalid email or password');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(errorElement, 'An error occurred during login');
+            }
+        });
+
+        // Registration form submission
+        document.getElementById('registerForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('register-email').value.trim();
+            const fullname = document.getElementById('fullname').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const submitButton = document.querySelector('.register-btn');
+            const buttonText = submitButton.querySelector('.button-text');
+            const loadingSpinner = submitButton.querySelector('.loading-spinner');
+            const errorElement = document.getElementById('register-error');
+
+            // Disable button and show loading state
+            submitButton.disabled = true;
+            buttonText.style.display = 'none';
+            loadingSpinner.style.display = 'inline-block';
+
+            // Simple validation
+            if (password !== confirmPassword) {
+                showError(errorElement, 'Passwords do not match');
+                resetRegisterButton();
+                return;
+            }
+            
+            if (password.length < 8) {
+                showError(errorElement, 'Password must be at least 8 characters long');
+                resetRegisterButton();
+                return;
+            }
+
+            try {
+                // For demo purposes - simulated registration success
+                // In production, replace with proper registration logic
+                setTimeout(() => {
+                    alert('Registration successful! Please login.');
+                    showPage('login-page');
+                    resetRegisterButton();
+                    // Reset form
+                    document.getElementById('registerForm').reset();
+                }, 1000);
+            } catch (error) {
+                console.error('Registration error:', error);
+                showError(errorElement, 'An error occurred during registration');
+                resetRegisterButton();
+            }
+
+            function resetRegisterButton() {
+                submitButton.disabled = false;
+                buttonText.style.display = 'inline-block';
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        // Logout functionality
+        function logout() {
+            setLoggedIn(false);
+            showPage('login-page');
+        }
+
+        // Set logged in state and update UI
+        function setLoggedIn(loggedInState) {
+            isLoggedIn = loggedInState;
+            
+            // Update UI elements based on login state
+            const authNavItems = document.querySelectorAll('.auth-nav');
+            const userNavItems = document.querySelectorAll('.user-nav');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            if (isLoggedIn) {
+                // Show user navigation, hide auth navigation
+                authNavItems.forEach(item => item.style.display = 'none');
+                userNavItems.forEach(item => item.style.display = 'inline-block');
+                menuToggle.style.display = 'block';
+            } else {
+                // Show auth navigation, hide user navigation
+                authNavItems.forEach(item => item.style.display = 'inline-block');
+                userNavItems.forEach(item => item.style.display = 'none');
+                menuToggle.style.display = 'none';
+                
+                // Close sidebar and history panel if open
+                document.querySelector('.sidebar').classList.remove('open');
+                document.getElementById('unifiedChatHistory').classList.remove('open');
+            }
+        }
+
+        // Utility function to show error messages
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+            
+            // Hide error after 3 seconds
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+
+        // Chat functionality
+        document.getElementById('userInputButton').addEventListener('click', sendMessage);
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const messageText = userInput.value.trim();
+            
+            if (messageText) {
+                // Add user message to chat
+                addMessage('user', messageText);
+                
+                // Clear input field
+                userInput.value = '';
+                
+                // Simulate AI response (replace with actual implementation)
+                setTimeout(() => {
+                    const responses = [
+                        "I'm processing your request.",
+                        "That's an interesting question!",
+                        "Let me think about that...",
+                        "Here's what I found for you.",
+                        "I can help you with that."
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    addMessage('ai', randomResponse);
+                }, 1000);
+            }
+        }
+
+        function addMessage(sender, text) {
+            const messagesContainer = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            
+            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+            messageElement.innerHTML = `<p>${text}</p>`;
+            
+            messagesContainer.appendChild(messageElement);
+            
+            // Scroll to the bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Initialize sidebar menu functionality
+        document.getElementById('logout').addEventListener('click', logout);
+        
+        document.getElementById('clearSessions').addEventListener('click', function() {
+            document.getElementById('messages').innerHTML = '';
+            alert('All chat sessions cleared!');
+        });
+
+        // Initialize the SPA by showing the login page
+        window.addEventListener('DOMContentLoaded', function() {
+            showPage('login-page');
+        });
+
+        // Add message formatting styles dynamically
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+            .message {
+                padding: 10px 15px;
+                margin: 5px 0;
+                border-radius: 10px;
+                max-width: 80%;
+            }
+            
+            .user-message {
+                background-color: #DCF8C6;
+                align-self: flex-end;
+                margin-left: auto;
+            }
+            
+            .ai-message {
+                background-color: #E8E8E8;
+                align-self: flex-start;
+                margin-right: auto;
+            }
+            
+            #messages {
+                display: flex;
+                flex-direction: column;
+            }
+        `;
+        document.head.appendChild(styleElement);
+    </script>
+</body>
+</html>
