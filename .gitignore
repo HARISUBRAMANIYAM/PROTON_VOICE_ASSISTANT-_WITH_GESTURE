@@ -23,7 +23,7 @@ var/
 .venv
 venv/
 ENV/
-
+.myvevn/
 # IDEs and editors
 .idea/
 .vscode/

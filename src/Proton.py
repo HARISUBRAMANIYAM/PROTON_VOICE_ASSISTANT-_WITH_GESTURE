@@ -269,7 +269,7 @@ while True:
             respond(voice_data)
         except SystemExit:
             reply("Exit Successfull")
-            #app.ChatBot.addAppMsg("Exit Successfull")
+            app.ChatBot.addAppMsg("Exit Successfull")
             break
         except:
             #some other exception got raised

@@ -1,7 +1,7 @@
 # Imports
 
 import cv2
-from mediapipe.python  import *
+# from mediapipe.python  import *
 import mediapipe as mp
 import pyautogui
 import math

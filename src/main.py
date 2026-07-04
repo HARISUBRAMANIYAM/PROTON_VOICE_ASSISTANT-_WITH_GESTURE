@@ -5,14 +5,23 @@ import subprocess
 import logging
 import sys
 from hashlib import sha256
+from datetime import datetime  # Moved up here for cleaner structure
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-# Constants
-USER_FILE = r"C:\\Gesture-Controlled-Virtual-Mouse-main\src\\validation\\Login.json"
-WEB_DIR = r"C:\\Gesture-Controlled-Virtual-Mouse-main\src\web"
-APP_PATH = r"C:\\Gesture-Controlled-Virtual-Mouse-main\src\\app.py"
+# 1. DYNAMIC PATH CALCULATION (Fixes hardcoded C:\\ absolute paths)
+# This finds the absolute directory where THIS script is currently located
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 2. Add BASE_DIR to the Python path so spawned scripts can find modules like 'Proton'
+if BASE_DIR not in sys.path:
+    sys.path.append(BASE_DIR)
+
+# Construct relative paths dynamically based on your project structure
+USER_FILE = os.path.join(BASE_DIR, "validation", "Login.json")
+WEB_DIR = os.path.join(BASE_DIR, "web")
+APP_PATH = os.path.join(BASE_DIR, "app.py")
 
 # Initialize Eel with the web directory
 eel.init(WEB_DIR, allowed_extensions=['.js', '.html', '.css'])
@@ -111,7 +120,10 @@ def launch_main_app():
     """Launch the main application"""
     try:
         logging.info(f"Launching main app from: {APP_PATH}")
-        subprocess.Popen([sys.executable, APP_PATH])
+        
+        # 3. FIX FOR SUBPROCESS PIPELINES: Set 'cwd' (current working directory)
+        # This tells python to treat BASE_DIR as the active execution context
+        subprocess.Popen([sys.executable, APP_PATH], cwd=BASE_DIR)
         return {"status": "success"}
     except Exception as e:
         logging.error(f"Failed to start main app: {e}")
@@ -133,5 +145,4 @@ def main():
         logging.error(f"Failed to start Eel application: {e}")
 
 if __name__ == "__main__":
-    from datetime import datetime
     main()
