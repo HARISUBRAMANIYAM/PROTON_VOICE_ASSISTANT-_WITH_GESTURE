@@ -145,6 +145,88 @@ class ChatBot:
             return {"status": "error", "message": str(e), "data": []}
 
     # ==================== GESTURE CONTROL ====================
+    # @staticmethod
+    # @eel.expose
+    # def start_gesture():
+    #     """Start gesture control system"""
+    #     try:
+    #         if ChatBot.gesture_controller is None:
+    #             ChatBot.gesture_controller = Gesture_Controller.GestureController()
+    #             thread = threading.Thread(target=ChatBot.capture_frames)
+    #             thread.daemon = True
+    #             thread.start()
+            
+    #         ChatBot.gesture_active = True
+    #         logging.info("Gesture control started")
+    #         return {"status": "success", "message": "Gesture control started"}
+    #     except Exception as e:
+    #         logging.error(f"Error starting gesture control: {e}")
+    #         return {"status": "error", "message": str(e)}
+
+    # @staticmethod
+    # def capture_frames():
+    #     """Continuously capture frames from camera"""
+    #     cap = cv2.VideoCapture(0)
+    #     while ChatBot.gesture_active:
+    #         ret, frame = cap.read()
+    #         if ret:
+    #             ChatBot.frame = frame
+    #         else:
+    #             logging.error("Failed to capture frame from camera")
+    #             break
+    #     cap.release()
+
+    # @staticmethod
+    # @eel.expose
+    # def stop_gesture():
+    #     """Stop gesture control system"""
+    #     try:
+    #         ChatBot.gesture_active = False
+    #         if ChatBot.gesture_controller:
+    #             ChatBot.gesture_controller.gc_mode = 0
+    #             ChatBot.gesture_controller = None
+            
+    #         logging.info("Gesture control stopped")
+    #         return {"status": "success", "message": "Gesture control stopped"}
+    #     except Exception as e:
+    #         logging.error(f"Error stopping gesture control: {e}")
+    #         return {"status": "error", "message": str(e)}
+
+    # @staticmethod
+    # @eel.expose
+    # def is_gesture_active():
+    #     """Check if gesture control is active"""
+    #     return ChatBot.gesture_active
+
+    # @staticmethod
+    # @eel.expose
+    # def get_video_frame():
+    #     """Get current video frame from gesture controller"""
+    #     try:
+    #         if ChatBot.gesture_active and ChatBot.frame is not None:
+    #             # Convert frame to base64
+    #             _, buffer = cv2.imencode('.jpg', ChatBot.frame)
+    #             return {
+    #                 "status": "success",
+    #                 "frame": base64.b64encode(buffer).decode('utf-8')
+    #             }
+    #         return {
+    #             "status": "error",
+    #             "message": "No frame available" if not ChatBot.gesture_active else "Frame capture failed"
+    #         }
+    #     except Exception as e:
+    #         logging.error(f"Error getting video frame: {e}")
+    #         return {
+    #             "status": "error",
+    #             "message": str(e)
+    #         }
+        # ==================== GESTURE CONTROL ====================
+    @staticmethod
+    @eel.expose
+    def is_gesture_active():
+        """Check if gesture control is active"""
+        return ChatBot.gesture_active
+
     @staticmethod
     @eel.expose
     def start_gesture():
@@ -152,7 +234,7 @@ class ChatBot:
         try:
             if ChatBot.gesture_controller is None:
                 ChatBot.gesture_controller = Gesture_Controller.GestureController()
-                thread = threading.Thread(target=ChatBot.capture_frames)
+                thread = threading.Thread(target=ChatBot.gesture_controller.start) # Run MediaPipe loop
                 thread.daemon = True
                 thread.start()
             
@@ -164,26 +246,13 @@ class ChatBot:
             return {"status": "error", "message": str(e)}
 
     @staticmethod
-    def capture_frames():
-        """Continuously capture frames from camera"""
-        cap = cv2.VideoCapture(0)
-        while ChatBot.gesture_active:
-            ret, frame = cap.read()
-            if ret:
-                ChatBot.frame = frame
-            else:
-                logging.error("Failed to capture frame from camera")
-                break
-        cap.release()
-
-    @staticmethod
     @eel.expose
     def stop_gesture():
         """Stop gesture control system"""
         try:
             ChatBot.gesture_active = False
             if ChatBot.gesture_controller:
-                ChatBot.gesture_controller.gc_mode = 0
+                ChatBot.gesture_controller.stop()
                 ChatBot.gesture_controller = None
             
             logging.info("Gesture control stopped")
@@ -194,33 +263,24 @@ class ChatBot:
 
     @staticmethod
     @eel.expose
-    def is_gesture_active():
-        """Check if gesture control is active"""
-        return ChatBot.gesture_active
-
-    @staticmethod
-    @eel.expose
     def get_video_frame():
-        """Get current video frame from gesture controller"""
+        """Get current video frame from gesture controller with landmarks"""
         try:
-            if ChatBot.gesture_active and ChatBot.frame is not None:
-                # Convert frame to base64
-                _, buffer = cv2.imencode('.jpg', ChatBot.frame)
-                return {
-                    "status": "success",
-                    "frame": base64.b64encode(buffer).decode('utf-8')
-                }
+            if ChatBot.gesture_active and ChatBot.gesture_controller is not None:
+                frame = ChatBot.gesture_controller.get_video_frame()
+                if frame is not None:
+                    _, buffer = cv2.imencode('.jpg', frame)
+                    return {
+                        "status": "success",
+                        "frame": base64.b64encode(buffer).decode('utf-8')
+                    }
             return {
                 "status": "error",
-                "message": "No frame available" if not ChatBot.gesture_active else "Frame capture failed"
+                "message": "No frame available"
             }
         except Exception as e:
             logging.error(f"Error getting video frame: {e}")
-            return {
-                "status": "error",
-                "message": str(e)
-            }
-
+            return {"status": "error", "message": str(e)}
     # ==================== USER INPUT HANDLING ====================
     @staticmethod
     def isUserInput():

@@ -31,11 +31,15 @@ file_exp_status = False
 files = []
 path = ''
 is_awake = True  # Bot status
+is_speaking = False  # Track TTS speaking state to prevent mic feedback
 
-# Initialize Vosk model
-VOSK_MODEL_PATH = "C:\\Gesture-Controlled-Virtual-Mouse-main\\src\\vosk-model-small-en-us-0.15"
+# Initialize Vosk model with dynamic script directory path
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+VOSK_MODEL_PATH = os.path.join(BASE_DIR, "vosk-model-small-en-us-0.15")
+
 if not os.path.exists(VOSK_MODEL_PATH):
-    print("Please download a model from https://alphacephei.com/vosk/models and extract to the path")
+    print(f"Vosk model directory not found at: {VOSK_MODEL_PATH}")
+    print("Please download a model from https://alphacephei.com/vosk/models and extract it.")
     sys.exit()
 
 vosk_model = vosk.Model(VOSK_MODEL_PATH)
@@ -43,14 +47,18 @@ vosk_recognizer = vosk.KaldiRecognizer(vosk_model, 16000)
 
 # ------------------Functions----------------------
 def reply(audio):
+    global is_speaking
     try:
+        is_speaking = True
         app.ChatBot.addAppMsg(audio)
         app.ChatBot.store_chat_message("Proton", audio)
-        print(audio)
+        print(f"[Proton]: {audio}")
         engine.say(audio)
         engine.runAndWait()
     except Exception as e:
         print(f"Error Occurred in the reply function: {e}")
+    finally:
+        is_speaking = False
 
 def wish():
     """Greet the user based on the time of day."""
@@ -63,32 +71,58 @@ def wish():
         reply("Good Evening!")
     reply("I am Proton, how may I help you?")
 
-def record_audio():
-    """Record audio from the microphone and convert it to text using Vosk."""
+def record_audio(timeout_seconds=5):
+    """Record audio from the microphone and convert it to text using Vosk with a listening timeout."""
+    global is_speaking
+    
+    # Wait if bot is currently speaking via TTS
+    while is_speaking:
+        time.sleep(0.1)
+
     p = pyaudio.PyAudio()
-    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
-    stream.start_stream()
-    
+    try:
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
+        stream.start_stream()
+    except Exception as e:
+        print(f"Microphone Open Error: {e}")
+        p.terminate()
+        return ""
+
     print("Listening...")
+    start_time = time.time()
+    text = ""
     
-    while True:
-        data = stream.read(4096)
-        if vosk_recognizer.AcceptWaveform(data):
-            # result = vosk_recognizer.Result()
-            # text = result[14:-3]
-            result_json = json.loads(vosk_recognizer.Result())
-            text = result_json.get("text","")  # Extract text from JSON result
-            print(f"Recognized: {text}")
+    try:
+        while time.time() - start_time < timeout_seconds:
+            if is_speaking:
+                break
+            
+            data = stream.read(2048, exception_on_overflow=False)
+            if vosk_recognizer.AcceptWaveform(data):
+                result_json = json.loads(vosk_recognizer.Result())
+                text = result_json.get("text", "").strip()
+                if text:
+                    break
+        
+        # If timeout reached and no full waveform accepted, check final result
+        if not text:
+            final_json = json.loads(vosk_recognizer.FinalResult())
+            text = final_json.get("text", "").strip()
+            
+    except Exception as e:
+        print(f"Vosk Audio Error: {e}")
+    finally:
+        try:
             stream.stop_stream()
             stream.close()
-            p.terminate()
-            return text.lower()
-    
-    # Fallback if no speech detected
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
-    return ""
+        except Exception:
+            pass
+        p.terminate()
+        vosk_recognizer.Reset()
+
+    if text:
+        print(f"Recognized: {text}")
+    return text.lower()
 name = "Proton"
 '''def open_browser(browser_name):
     """Open the specified browser."""
@@ -305,49 +339,46 @@ COMMAND_KEYS = list(COMMAND_MAP.keys())
 
 
 def execute_command_with_fuzzy_match(command_text):
-    best_match, confidence = process.extractOne(command_text, COMMAND_KEYS)
-    
-    print(f"[DEBUG] Recognized: {command_text} → Best Match: {best_match} ({confidence}%)")
+    """Match and execute command using fuzzy logic."""
+    if not command_text:
+        return
 
-    if confidence > 70:  # Threshold can be adjusted
+    best_match, confidence = process.extractOne(command_text, COMMAND_KEYS)
+    print(f"[DEBUG] Input: '{command_text}' → Best Match: '{best_match}' ({confidence}%)")
+
+    if confidence >= 70:
         try:
-            COMMAND_MAP[best_match]()  # Execute matched command
+            COMMAND_MAP[best_match]()
         except Exception as e:
-            reply("Sorry, I couldn't execute the command.")
+            reply("Sorry, I couldn't execute that command.")
             print(f"Execution Error: {e}")
     else:
-        reply("I didn't understand the command.")
-
+        reply("Sorry, I didn't understand that command.")
 
 
 def match_command(user_input):
-    commands = list(COMMAND_MAP.keys())
-    best_match, score = process.extractOne(user_input, commands)
-    if score > 75:
+    if not user_input:
+        return None
+    best_match, score = process.extractOne(user_input, COMMAND_KEYS)
+    if score >= 70:
         return best_match
     return None
+
 def respond(voice_data):
     """Process the voice command."""
     global is_awake
+    if not voice_data:
+        return
+
     if not is_awake and "wake up" in voice_data:
         is_awake = True
         reply("I am now awake and ready.")
-        app.ChatBot.addAppMsg("I am now awake and ready.")
         return
 
     if is_awake:
-        for command, action in COMMAND_MAP.items():
-            if command in voice_data:
-                print(f"Executing Command: {command}")
-                action()
-                break
-        else:
-            print(f"Unrecognized Command: {voice_data}")
-            reply('I am not functioned to do this!')
-            app.ChatBot.addAppMsg('I am not functioned to do this!')
+        execute_command_with_fuzzy_match(voice_data)
 
-# [Rest of your driver code remains the same...]
-
+# Launch Eel GUI thread
 t1 = Thread(target=app.ChatBot.start)
 t1.start()
 
@@ -358,31 +389,28 @@ while not app.ChatBot.started:
 wish()
 
 while True:
-    if app.ChatBot.isUserInput():
-        # take input from GUI
-        voice_data = app.ChatBot.popUserInput()
-        app.ChatBot.addUserMsg(voice_data)
-    else:
-        # take input from Voice using Vosk
-        voice_data = record_audio()
-        command_key = match_command(voice_data)
-        if command_key:
-            if voice_data:  # Only process if we got some voice input
-                execute_command_with_fuzzy_match(voice_data)
+    try:
+        if app.ChatBot.isUserInput():
+            # Input from GUI text box
+            voice_data = app.ChatBot.popUserInput()
+            if voice_data:
                 app.ChatBot.addUserMsg(voice_data)
                 app.ChatBot.store_chat_message("User", voice_data)
+                respond(voice_data)
         else:
-            reply("Sorry, I didn’t understand that command.")
+            # Input from Voice using Vosk
+            voice_data = record_audio(timeout_seconds=4)
+            if voice_data:
+                app.ChatBot.addUserMsg(voice_data)
+                app.ChatBot.store_chat_message("User", voice_data)
+                respond(voice_data)
+            else:
+                # Silence / no speech detected -> yield CPU without speaking error
+                time.sleep(0.1)
 
-    # process voice_data
-    if 'proton' in voice_data:
-        try:
-            # Handle sys.exit()
-            respond(voice_data)
-        except SystemExit:
-            reply("Exit Successfull")
-            app.ChatBot.addAppMsg("Exit Successfull")
-            break
-        except Exception as e:
-            print(f"EXCEPTION raised while processing command: {e}")
-            break
+    except SystemExit:
+        reply("Exit Successful")
+        break
+    except Exception as e:
+        print(f"Main loop error: {e}")
+        time.sleep(0.5)
