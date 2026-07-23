@@ -380,7 +380,8 @@ while True:
             # Handle sys.exit()
             respond(voice_data)
         except SystemExit:
-            reply("Exit Successful")
+            reply("Exit Successfull")
+            app.ChatBot.addAppMsg("Exit Successfull")
             break
         except Exception as e:
             print(f"EXCEPTION raised while processing command: {e}")

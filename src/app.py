@@ -7,20 +7,21 @@ import atexit
 import logging
 import threading
 import subprocess
-import base64
-import cv2
-import numpy as np
+import tkinter as tk
+import tkinter.messagebox as messagebox
 from queue import Queue
 from datetime import datetime
 from pynput.keyboard import Controller, Key
-
+import base64
+import cv2
+import numpy as np
 # Third-party imports
 import Proton
 import Gesture_Controller
 
 # Constants
 LOG_IN_PATH = r"C:\Gesture-Controlled-Virtual-Mouse-main\src\main.py"
-CHAT_HISTORY_DIR = r"C:\Gesture-Controlled-Virtual-Mouse-main\src\chat_history"
+CHAT_HISTORY_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chat_history")
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +38,7 @@ class ChatBot:
     session_file = None
     gesture_controller = None
     gesture_active = False
+    frame = None  # To store the current video frame
 
     # Create chat history directory if it doesn't exist
     if not os.path.exists(CHAT_HISTORY_DIR):
@@ -150,7 +152,7 @@ class ChatBot:
         try:
             if ChatBot.gesture_controller is None:
                 ChatBot.gesture_controller = Gesture_Controller.GestureController()
-                thread = threading.Thread(target=ChatBot.gesture_controller.start)
+                thread = threading.Thread(target=ChatBot.capture_frames)
                 thread.daemon = True
                 thread.start()
             
@@ -162,13 +164,26 @@ class ChatBot:
             return {"status": "error", "message": str(e)}
 
     @staticmethod
+    def capture_frames():
+        """Continuously capture frames from camera"""
+        cap = cv2.VideoCapture(0)
+        while ChatBot.gesture_active:
+            ret, frame = cap.read()
+            if ret:
+                ChatBot.frame = frame
+            else:
+                logging.error("Failed to capture frame from camera")
+                break
+        cap.release()
+
+    @staticmethod
     @eel.expose
     def stop_gesture():
         """Stop gesture control system"""
         try:
             ChatBot.gesture_active = False
             if ChatBot.gesture_controller:
-                ChatBot.gesture_controller.stop()
+                ChatBot.gesture_controller.gc_mode = 0
                 ChatBot.gesture_controller = None
             
             logging.info("Gesture control stopped")
@@ -188,14 +203,13 @@ class ChatBot:
     def get_video_frame():
         """Get current video frame from gesture controller"""
         try:
-            if ChatBot.gesture_active and ChatBot.gesture_controller:
-                frame = ChatBot.gesture_controller.get_video_frame()
-                if frame is not None:
-                    _, buffer = cv2.imencode('.jpg', frame)
-                    return {
-                        "status": "success",
-                        "frame": base64.b64encode(buffer).decode('utf-8')
-                    }
+            if ChatBot.gesture_active and ChatBot.frame is not None:
+                # Convert frame to base64
+                _, buffer = cv2.imencode('.jpg', ChatBot.frame)
+                return {
+                    "status": "success",
+                    "frame": base64.b64encode(buffer).decode('utf-8')
+                }
             return {
                 "status": "error",
                 "message": "No frame available" if not ChatBot.gesture_active else "Frame capture failed"

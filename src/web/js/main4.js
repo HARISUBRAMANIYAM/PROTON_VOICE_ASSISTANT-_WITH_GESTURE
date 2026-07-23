@@ -1,3 +1,9 @@
+// ============================================================================
+// main4.js — Proton chat page logic (index.html)
+// Cleaned version: only the working code kept, wired to auth.js session guard.
+// ============================================================================
+
+// ==================== DOM ELEMENTS ====================
 const elements = {
     userInput: document.getElementById("userInput"),
     userInputButton: document.getElementById("userInputButton"),
@@ -15,7 +21,7 @@ const elements = {
     logoutButton: document.getElementById("logout")
 };
 
-// Initialize Eel and expose functions
+// Let Python/Eel call these back into the page
 eel.expose(addUserMsg);
 eel.expose(addAppMsg);
 eel.expose(storeChatMessage);
@@ -139,7 +145,7 @@ function displayChatHistory(chatData, filename) {
         const msgDiv = document.createElement('div');
         msgDiv.className = msg.sender === 'User' ? 'history-message from' : 'history-message to';
         msgDiv.innerHTML = `
-            <strong>${msg.sender}:</strong> 
+            <strong>${msg.sender}:</strong>
             ${msg.message}
             ${msg.timestamp ? `<span class="timestamp">${msg.timestamp}</span>` : ''}
         `;
@@ -165,7 +171,6 @@ function showError(message) {
 
 // ==================== EVENT LISTENERS ====================
 function setupEventListeners() {
-    // Chat input
     if (elements.userInputButton) {
         elements.userInputButton.addEventListener("click", getUserInput);
     }
@@ -179,12 +184,10 @@ function setupEventListeners() {
         });
     }
 
-    // Menu toggle
     if (elements.menuToggle) {
         elements.menuToggle.addEventListener("click", toggleMenu);
     }
 
-    // Chat history
     if (elements.chatHistoryBtn) {
         elements.chatHistoryBtn.addEventListener("click", () => {
             const isVisible = elements.unifiedChatHistory.style.display === "block";
@@ -203,18 +206,33 @@ function setupEventListeners() {
         elements.refreshHistory.addEventListener("click", refreshChatHistory);
     }
 
-    // Logout
+    // Logout — uses the shared session helper from auth.js if present,
+    // otherwise falls back to a direct Eel call.
     if (elements.logoutButton) {
-        elements.logoutButton.addEventListener("click", () => eel.Logout());
+        elements.logoutButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (window.ProtonAuth && typeof window.ProtonAuth.logoutUser === "function") {
+                window.ProtonAuth.logoutUser();
+            } else {
+                if (window.eel && typeof eel.Logout === "function") eel.Logout();
+                window.location.href = ".Login.html";
+            }
+        });
     }
 }
 
 // ==================== INITIALIZATION ====================
 async function initialize() {
+    // Session guard: bounce back to login if nobody's signed in.
+    if (window.ProtonAuth && !window.ProtonAuth.isLoggedIn()) {
+        window.location.href = ".Login.html";
+        return;
+    }
+
     console.log("Initializing application...");
     setupEventListeners();
 
-    // Load any existing chat history
+    // Load any existing chat history for this session
     try {
         const history = await eel.get_chat_history()();
         if (history && Array.isArray(history.data)) {
@@ -231,5 +249,5 @@ async function initialize() {
     }
 }
 
-// Start the application
 document.addEventListener("DOMContentLoaded", initialize);
+console.log("main4.js loaded — chat + history + logout ready");
