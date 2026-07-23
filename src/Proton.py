@@ -13,6 +13,11 @@ from queue import Queue
 import threading
 from pynput.keyboard import Controller, Key
 import eel
+import vosk
+import json
+import pyaudio
+from fuzzywuzzy import process
+
 # -------------Object Initialization---------------
 today = date.today()
 recognizer = sr.Recognizer()
@@ -27,49 +32,65 @@ files = []
 path = ''
 is_awake = True  # Bot status
 
+# Initialize Vosk model
+VOSK_MODEL_PATH = "C:\\Gesture-Controlled-Virtual-Mouse-main\\src\\vosk-model-small-en-us-0.15"
+if not os.path.exists(VOSK_MODEL_PATH):
+    print("Please download a model from https://alphacephei.com/vosk/models and extract to the path")
+    sys.exit()
+
+vosk_model = vosk.Model(VOSK_MODEL_PATH)
+vosk_recognizer = vosk.KaldiRecognizer(vosk_model, 16000)
+
 # ------------------Functions----------------------
 def reply(audio):
     try:
         app.ChatBot.addAppMsg(audio)
-        app.ChatBot.store_chat_message("Proton",audio)
+        app.ChatBot.store_chat_message("Proton", audio)
         print(audio)
         engine.say(audio)
         engine.runAndWait()
     except Exception as e:
-        print(f"Error Occured in the  reply function{e}")
-
+        print(f"Error Occurred in the reply function: {e}")
 
 def wish():
     """Greet the user based on the time of day."""
     hour = datetime.now().hour
     if 0 <= hour < 12:
         reply("Good Morning!")
-        #app.ChatBot.addAppMsg("Good Morning!")
     elif 12 <= hour < 18:
         reply("Good Afternoon!")
-        #app.ChatBot.addAppMsg("Good Afternoon!")
     else:
         reply("Good Evening!")
-        #app.ChatBot.addAppMsg("Good Evening!")
     reply("I am Proton, how may I help you?")
-    #app.ChatBot.addAppMsg("I am Proton, how may I help you?")
 
 def record_audio():
-    """Record audio from the microphone and convert it to text."""
-    with sr.Microphone() as source:
-        recognizer.pause_threshold = 0.5
-        try:
-            print("Listening...")
-            audio = recognizer.listen(source, phrase_time_limit=5)
-            return recognizer.recognize_google(audio).lower()
-        except sr.UnknownValueError:
-            print("Could not understand audio")
-            return ""
-        except sr.RequestError:
-            reply('Sorry, my service is down. Please check your Internet connection.')
-            return ""
-
-def open_browser(browser_name):
+    """Record audio from the microphone and convert it to text using Vosk."""
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8192)
+    stream.start_stream()
+    
+    print("Listening...")
+    
+    while True:
+        data = stream.read(4096)
+        if vosk_recognizer.AcceptWaveform(data):
+            # result = vosk_recognizer.Result()
+            # text = result[14:-3]
+            result_json = json.loads(vosk_recognizer.Result())
+            text = result_json.get("text","")  # Extract text from JSON result
+            print(f"Recognized: {text}")
+            stream.stop_stream()
+            stream.close()
+            p.terminate()
+            return text.lower()
+    
+    # Fallback if no speech detected
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+    return ""
+name = "Proton"
+'''def open_browser(browser_name):
     """Open the specified browser."""
     if 'chrome' in browser_name:
         os.system('start chrome')
@@ -81,7 +102,48 @@ def open_browser(browser_name):
         #app.ChatBot.addAppMsg("opened Bing")
     else:
         reply('Browser not supported')
-        #app.ChatBot.addAppMsg("Browser Not Supported")
+        #app.ChatBot.addAppMsg("Browser Not Supported")'''
+def open_browser(browser_name):
+    browsers = {
+        'chrome': ('chrome', 'start chrome'),
+        'edge': ('msedge', 'start microsoft-edge:http://bing.com'),
+        'firefox': ('firefox', 'start firefox')
+    }
+    
+    for name, (process_name, cmd) in browsers.items():
+        if name in browser_name:
+            os.system(cmd)
+            reply(f'{name.capitalize()} opened successfully')
+            return
+    
+    reply('Browser not supported')
+reminders = []
+
+def set_reminder(voice_data):
+    try:
+        parts = voice_data.split("remind me to", 1)[1].strip().split("in", 1)
+        task = parts[0].strip()
+        time_str = parts[1].strip()
+        minutes = int(time_str.split()[0])
+        seconds = minutes * 60
+        reminder_time = time.time() + seconds
+        reminders.append((reminder_time, task))
+        reply(f"Okay, I'll remind you to {task} in {minutes} minutes.")
+        threading.Thread(target=_trigger_reminder, args=(reminder_time, task)).start()
+    except Exception as e:
+        reply("Sorry, I didn't understand the reminder command.")
+        print(f"Error setting reminder: {e}")
+
+def _trigger_reminder(reminder_time, task):
+    while time.time() < reminder_time:
+        time.sleep(1)
+    reply(f"Reminder: It's time to {task}!")
+    app.ChatBot.addAppMsg(f"Reminder: It's time to {task}!")
+    # Remove the reminder after triggering (optional, depending on desired behavior)
+    for i, (time_check, task_check) in enumerate(reminders):
+        if time_check == reminder_time and task_check == task:
+            reminders.pop(i)
+            break
 
 def take_screenshot():
     """Take a screenshot and save it."""
@@ -151,11 +213,12 @@ def date_f():
 def time_now():
     reply(str(datetime.now()).split(" ")[1].split('.')[0])
     #app.ChatBot.addAppMsg(str(datetime.now()).split(" ")[1].split('.')[0])
-def name():
+def tell_name():
     reply('My name is Proton!')
     #app.ChatBot.addAppMsg('My name is Proton!')
-def search():
-    webbrowser.get().open(f'https://google.com/search?q={voice_data.split("search")[1]}')
+def search(voice_data):
+    query = voice_data.split("search", 1)[1].strip()
+    webbrowser.open(f'https://google.com/search?q={query}')
     reply('Here is what I found on the web')
     #app.ChatBot.addAppMsg('Here is what I found on the web for Search')
 def minimize_all():
@@ -173,19 +236,34 @@ def closeNotePad():
 def type():
     keyboard.type(record_audio())
     #app.ChatBot.addAppMsg('Typed Successfully')
+def open_website(url):
+    print(f"Opening {url}")
+    webbrowser.open(url)
+def tell_time():
+    now = datetime.now()
+    time_string = now.strftime("%H:%M")
+    print(f"The time is {time_string}")
+    reply(f"The time is {time_string}")
+
 # Command Mapping
+
+# [Rest of your functions remain the same...]
+
+# Command Mapping (same as before)
 COMMAND_MAP = {
     'hello': wish,
-    'what is your name':name,
+    'what is your name': tell_name,
     'date': date_f,
     'time': time_now,
-    'search': search,
+    'search': lambda :search(record_audio()),
     'minimize all': minimize_all,
+    'tell time':tell_time,
     'maximize all': maximize_all,
     'open notepad': notePad,
     'close notepad': closeNotePad,
     'type': type,
-    'save': lambda: (keyboard.press(Key.ctrl_l) or keyboard.press('s') or keyboard.release('s') or keyboard.release(Key.ctrl_l),app.ChatBot.addAppMsg('Saved Successfully')),
+    'remind me to':set_reminder,
+    'save': lambda: (keyboard.press(Key.ctrl_l),keyboard.press('s'),keyboard.release('s'),keyboard.release(Key.ctrl_l),app.ChatBot.addAppMsg('Saved Successfully')),
     'close': lambda: (keyboard.press(Key.alt_l) or keyboard.press(Key.f4) or keyboard.release(Key.f4) or keyboard.release(Key.alt_l),app.ChatBot.addAppMsg('Closed Successfully')),
     'folders': lambda: (os.system('start explorer'),app.ChatBot.addAppMsg('Opened File Explorer')),
     'undo': lambda: keyboard.press(Key.ctrl_l) or keyboard.press('z') or keyboard.release('z') or keyboard.release(Key.ctrl_l),
@@ -201,6 +279,8 @@ COMMAND_MAP = {
     'new tab': lambda: keyboard.press(Key.ctrl_l) or keyboard.press('t') or keyboard.release('t') or keyboard.release(Key.ctrl_l),
     'close tab': lambda: keyboard.press(Key.ctrl_l) or keyboard.press('w') or keyboard.release('w') or keyboard.release(Key.ctrl_l),
     'delete': lambda: keyboard.press('delete'),
+    "open youtube":lambda :open_website("https://youtube.com"),
+    "open google":lambda :open_website("https://google.com"),
     'backspace': lambda: keyboard.press('backspace'),
     'enter': lambda: keyboard.press('enter'),
     'location': lambda: webbrowser.get().open(f'https://google.nl/maps/place/{record_audio()}/&amp;'),
@@ -208,8 +288,8 @@ COMMAND_MAP = {
     'exit': lambda: sys.exit(),
     'launch gesture recognition':lambda: handle_gesture_control('launch'),
     'stop gesture recognition': lambda: handle_gesture_control('stop'),
-    'scroll up': lambda: pyautogui.scroll(3),
-    'scroll down': lambda: pyautogui.scroll(-3),
+    'scroll up': lambda: pyautogui.scroll(300),
+    'scroll down': lambda: pyautogui.scroll(-300),
     'scroll right': lambda: pyautogui.hscroll(3),
     'scroll left': lambda: pyautogui.hscroll(-3),
     'copy All': lambda: keyboard.press(Key.ctrl_l) or keyboard.press('a') or keyboard.release('a') or keyboard.release(Key.ctrl_l),
@@ -218,8 +298,34 @@ COMMAND_MAP = {
     'list': lambda: handle_file_navigation('list'),
     'open': lambda: handle_file_navigation('open'),
     'back': lambda: handle_file_navigation('back'),
+    # ... rest of your command mappings ...
 }
 
+COMMAND_KEYS = list(COMMAND_MAP.keys())
+
+
+def execute_command_with_fuzzy_match(command_text):
+    best_match, confidence = process.extractOne(command_text, COMMAND_KEYS)
+    
+    print(f"[DEBUG] Recognized: {command_text} → Best Match: {best_match} ({confidence}%)")
+
+    if confidence > 70:  # Threshold can be adjusted
+        try:
+            COMMAND_MAP[best_match]()  # Execute matched command
+        except Exception as e:
+            reply("Sorry, I couldn't execute the command.")
+            print(f"Execution Error: {e}")
+    else:
+        reply("I didn't understand the command.")
+
+
+
+def match_command(user_input):
+    commands = list(COMMAND_MAP.keys())
+    best_match, score = process.extractOne(user_input, commands)
+    if score > 75:
+        return best_match
+    return None
 def respond(voice_data):
     """Process the voice command."""
     global is_awake
@@ -232,49 +338,50 @@ def respond(voice_data):
     if is_awake:
         for command, action in COMMAND_MAP.items():
             if command in voice_data:
-                print(f"Executing Command:{command}")
+                print(f"Executing Command: {command}")
                 action()
                 break
         else:
-            print(f"Unrecognized Command :{voice_data}")
+            print(f"Unrecognized Command: {voice_data}")
             reply('I am not functioned to do this!')
             app.ChatBot.addAppMsg('I am not functioned to do this!')
 
+# [Rest of your driver code remains the same...]
 
-# ------------------Driver Code--------------------
-
-t1 = Thread(target = app.ChatBot.start)
+t1 = Thread(target=app.ChatBot.start)
 t1.start()
 
 # Lock main thread until Chatbot has started
 while not app.ChatBot.started:
     time.sleep(0.5)
+    
 wish()
-voice_data = None
+
 while True:
     if app.ChatBot.isUserInput():
-        #take input from GUI
+        # take input from GUI
         voice_data = app.ChatBot.popUserInput()
         app.ChatBot.addUserMsg(voice_data)
     else:
-        #take input from Voice
+        # take input from Voice using Vosk
         voice_data = record_audio()
-        app.ChatBot.addUserMsg(voice_data)
-        app.ChatBot.store_chat_message("User",voice_data)
+        command_key = match_command(voice_data)
+        if command_key:
+            if voice_data:  # Only process if we got some voice input
+                execute_command_with_fuzzy_match(voice_data)
+                app.ChatBot.addUserMsg(voice_data)
+                app.ChatBot.store_chat_message("User", voice_data)
+        else:
+            reply("Sorry, I didn’t understand that command.")
 
-    #process voice_data
+    # process voice_data
     if 'proton' in voice_data:
         try:
-            #Handle sys.exit()
+            # Handle sys.exit()
             respond(voice_data)
         except SystemExit:
-            reply("Exit Successfull")
-            #app.ChatBot.addAppMsg("Exit Successfull")
+            reply("Exit Successful")
             break
-        except:
-            #some other exception got raised
-            print("EXCEPTION raised while closing.") 
+        except Exception as e:
+            print(f"EXCEPTION raised while processing command: {e}")
             break
-        
-
-
